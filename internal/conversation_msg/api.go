@@ -300,7 +300,7 @@ func (c *Conversation) SendMessage(ctx context.Context, s *sdk_struct.MsgStruct,
 				return nil, err
 			}
 		} else {
-			if oldMessage.Status != constant.MsgStatusSendFailed {
+			if oldMessage.Status != constant.MsgStatusSendFailed && oldMessage.Status != constant.MsgStatusSending {
 				return nil, sdkerrs.ErrMsgRepeated
 			} else {
 				s.Status = constant.MsgStatusSending
@@ -556,7 +556,7 @@ func (c *Conversation) SendMessageNotOss(ctx context.Context, s *sdk_struct.MsgS
 				return nil, err
 			}
 		} else {
-			if oldMessage.Status != constant.MsgStatusSendFailed {
+			if oldMessage.Status != constant.MsgStatusSendFailed && oldMessage.Status != constant.MsgStatusSending {
 				return nil, sdkerrs.ErrMsgRepeated
 			} else {
 				s.Status = constant.MsgStatusSending
@@ -867,7 +867,9 @@ func (c *Conversation) InsertSingleMessageToLocalStorage(ctx context.Context, s 
 	s.ClientMsgID = utils.GetMsgID(s.SendID)
 	s.SendTime = utils.GetCurrentTimestampByMill()
 	s.SessionType = constant.SingleChatType
-	s.Status = constant.MsgStatusSendSuccess
+	if s.Status < constant.MsgStatusSending {
+		s.Status = constant.MsgStatusSending
+	}
 	localMessage := MsgStructToLocalChatLog(s)
 	conversation.LatestMsg = utils.StructToJsonString(s)
 	conversation.ConversationType = constant.SingleChatType
@@ -907,7 +909,9 @@ func (c *Conversation) InsertGroupMessageToLocalStorage(ctx context.Context, s *
 	s.ClientMsgID = utils.GetMsgID(s.SendID)
 	s.SendTime = utils.GetCurrentTimestampByMill()
 	s.SessionType = conversation.ConversationType
-	s.Status = constant.MsgStatusSendSuccess
+	if s.Status < constant.MsgStatusSending {
+		s.Status = constant.MsgStatusSending
+	}
 	localMessage := MsgStructToLocalChatLog(s)
 	conversation.LatestMsg = utils.StructToJsonString(s)
 	conversation.LatestMsgSendTime = s.SendTime
