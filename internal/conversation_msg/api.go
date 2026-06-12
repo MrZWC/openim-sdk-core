@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/openimsdk/openim-sdk-core/v3/pkg/ccontext"
 	"github.com/openimsdk/protocol/msg"
 
 	"github.com/openimsdk/tools/errs"
@@ -259,7 +260,9 @@ func (c *Conversation) getConversationIDBySessionType(sourceID string, sessionTy
 	case constant.ReadGroupChatType:
 		return "sg_" + sourceID // super group chat
 	case constant.NotificationChatType:
-		return "sn_" + sourceID + "_" + c.loginUserID // server notification chat
+		l := []string{c.loginUserID, sourceID}
+		sort.Strings(l)
+		return "sn_" + strings.Join(l, "_") // server notification chat
 	}
 	return ""
 }
@@ -268,7 +271,7 @@ func (c *Conversation) GetConversationIDBySessionType(_ context.Context, sourceI
 	return c.getConversationIDBySessionType(sourceID, sessionType)
 }
 
-func (c *Conversation) SendMessage(ctx context.Context, s *sdk_struct.MsgStruct, recvID, groupID string, p *sdkws.OfflinePushInfo, isOnlineOnly bool) (*sdk_struct.MsgStruct, error) {
+func (c *Conversation) sendMessage(ctx context.Context, s *sdk_struct.MsgStruct, recvID, groupID string, p *sdkws.OfflinePushInfo, isOnlineOnly bool) (*sdk_struct.MsgStruct, error) {
 	filepathExt := func(name ...string) string {
 		for _, path := range name {
 			if ext := filepath.Ext(path); ext != "" {
@@ -282,7 +285,10 @@ func (c *Conversation) SendMessage(ctx context.Context, s *sdk_struct.MsgStruct,
 	if err != nil {
 		return nil, err
 	}
-	callback, _ := ctx.Value("callback").(open_im_sdk_callback.SendMsgCallBack)
+	callback, ok := ctx.Value(ccontext.CtxCallback).(open_im_sdk_callback.SendMsgCallBack)
+	if !ok {
+		return nil, sdkerrs.ErrSdkInternal.WrapMsg("context not found SendMsgCallBack")
+	}
 	log.ZDebug(ctx, "before insert message is", "message", *s)
 	if !isOnlineOnly {
 		oldMessage, err := c.db.GetMessage(ctx, lc.ConversationID, s.ClientMsgID)
@@ -532,14 +538,17 @@ func (c *Conversation) SendMessage(ctx context.Context, s *sdk_struct.MsgStruct,
 	return c.sendMessageToServer(ctx, s, lc, callback, delFile, p, options, isOnlineOnly)
 }
 
-func (c *Conversation) SendMessageNotOss(ctx context.Context, s *sdk_struct.MsgStruct, recvID, groupID string,
+func (c *Conversation) sendMessageNotOss(ctx context.Context, s *sdk_struct.MsgStruct, recvID, groupID string,
 	p *sdkws.OfflinePushInfo, isOnlineOnly bool) (*sdk_struct.MsgStruct, error) {
 	options := make(map[string]bool, 2)
 	lc, err := c.checkID(ctx, s, recvID, groupID, options)
 	if err != nil {
 		return nil, err
 	}
-	callback, _ := ctx.Value("callback").(open_im_sdk_callback.SendMsgCallBack)
+	callback, ok := ctx.Value(ccontext.CtxCallback).(open_im_sdk_callback.SendMsgCallBack)
+	if !ok {
+		return nil, sdkerrs.ErrSdkInternal.WrapMsg("context not found SendMsgCallBack")
+	}
 	if !isOnlineOnly {
 		oldMessage, err := c.db.GetMessage(ctx, lc.ConversationID, s.ClientMsgID)
 		if err != nil {
@@ -614,6 +623,35 @@ func (c *Conversation) SendMessageNotOss(ctx context.Context, s *sdk_struct.MsgS
 	return c.sendMessageToServer(ctx, s, lc, callback, delFile, p, options, isOnlineOnly)
 }
 
+func (c *Conversation) SendMessage(ctx context.Context, s *sdk_struct.MsgStruct, recvID, groupID string, p *sdkws.OfflinePushInfo, isOnlineOnly bool) (*sdk_struct.MsgStruct, error) {
+	task := &sendTask{
+		ctx: ctx,
+		msg: s,
+		exec: func(taskCtx context.Context) (*sdk_struct.MsgStruct, error) {
+			return c.sendMessage(taskCtx, s, recvID, groupID, p, isOnlineOnly)
+		},
+	}
+	if err := c.getSender().submit(task); err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func (c *Conversation) SendMessageNotOss(ctx context.Context, s *sdk_struct.MsgStruct, recvID, groupID string,
+	p *sdkws.OfflinePushInfo, isOnlineOnly bool) (*sdk_struct.MsgStruct, error) {
+	task := &sendTask{
+		ctx: ctx,
+		msg: s,
+		exec: func(taskCtx context.Context) (*sdk_struct.MsgStruct, error) {
+			return c.sendMessageNotOss(taskCtx, s, recvID, groupID, p, isOnlineOnly)
+		},
+	}
+	if err := c.getSender().submit(task); err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
 func (c *Conversation) sendMessageToServer(ctx context.Context, s *sdk_struct.MsgStruct, lc *model_struct.LocalConversation, callback open_im_sdk_callback.SendMsgCallBack,
 	delFiles []string, offlinePushInfo *sdkws.OfflinePushInfo, options map[string]bool, isOnlineOnly bool) (*sdk_struct.MsgStruct, error) {
 	if isOnlineOnly {
@@ -664,11 +702,6 @@ func (c *Conversation) sendMessageToServer(ctx context.Context, s *sdk_struct.Ms
 				constant.MsgStatusSendFailed, s, lc, isOnlineOnly)
 			return s, err
 		}
-	}
-	if s.SendTime == 0 {
-		s.SendTime = sendMsgResp.SendTime
-		s.Status = constant.MsgStatusSendSuccess
-		s.ServerMsgID = sendMsgResp.ServerMsgID
 	}
 	go func() {
 		//remove media cache file
@@ -898,13 +931,12 @@ func (c *Conversation) InsertGroupMessageToLocalStorage(ctx context.Context, s *
 	if sendID != c.loginUserID {
 		faceUrl, name, err := c.getUserNameAndFaceURL(ctx, sendID)
 		if err != nil {
-			// log.Error("", "getUserNameAndFaceUrlByUid err", err.Error(), sendID)
+			log.ZWarn(ctx, "getUserNameAndFaceUrlByUid err", err, "sendID", sendID)
 		}
 		s.SenderFaceURL = faceUrl
 		s.SenderNickname = name
 	}
 	s.SendID = sendID
-	s.RecvID = groupID
 	s.GroupID = groupID
 	s.ClientMsgID = utils.GetMsgID(s.SendID)
 	s.SendTime = utils.GetCurrentTimestampByMill()

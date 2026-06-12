@@ -16,10 +16,12 @@ package group
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/openimsdk/openim-sdk-core/v3/pkg/utils"
 	"github.com/openimsdk/tools/errs"
+	"gorm.io/gorm"
 
 	"github.com/openimsdk/tools/utils/datautil"
 
@@ -177,6 +179,17 @@ func (g *Group) GetJoinedGroupList(ctx context.Context) ([]*model_struct.LocalGr
 }
 
 func (g *Group) GetJoinedGroupListPage(ctx context.Context, offset, count int32) ([]*model_struct.LocalGroup, error) {
+	res, err := g.getJoinedGroupListPage(ctx, offset, count)
+	if err != nil {
+		if errs.ErrRecordNotFound.Is(err) || errors.Is(err, gorm.ErrRecordNotFound) {
+			return []*model_struct.LocalGroup{}, nil
+		}
+		return nil, err
+	}
+	return res, nil
+}
+
+func (g *Group) getJoinedGroupListPage(ctx context.Context, offset, count int32) ([]*model_struct.LocalGroup, error) {
 	dataFetcher := datafetcher.NewDataFetcher(
 		g.db,
 		g.groupTableName(),
@@ -223,6 +236,74 @@ func (g *Group) GetSpecifiedGroupsInfo(ctx context.Context, groupIDs []string) (
 				return nil, err
 			}
 			return datautil.Batch(ServerGroupToLocalGroup, serverGroupInfo), nil
+		},
+	)
+	return dataFetcher.FetchMissingAndCombineLocal(ctx, groupIDs)
+}
+
+// GetSpecifiedGroupsInfoSafe fetches group info without writing to local storage or touching version sync.
+func (g *Group) GetSpecifiedGroupsInfoSafe(ctx context.Context, groupIDs []string) ([]*model_struct.LocalGroup, error) {
+	if len(groupIDs) == 0 {
+		return nil, nil
+	}
+
+	dataFetcher := datafetcher.NewDataFetcher(
+		g.db,
+		g.groupTableName(),
+		g.loginUserID,
+		func(localGroup *model_struct.LocalGroup) string {
+			return localGroup.GroupID
+		},
+		func(ctx context.Context, values []*model_struct.LocalGroup) error {
+			return nil
+		},
+		func(ctx context.Context, groupIDs []string) ([]*model_struct.LocalGroup, bool, error) {
+			var (
+				res    []*model_struct.LocalGroup
+				needDB []string
+			)
+
+			for _, groupID := range groupIDs {
+				if v, ok := g.groupInfoCache.Load(groupID); ok {
+					res = append(res, v)
+				} else {
+					needDB = append(needDB, groupID)
+				}
+			}
+
+			if len(needDB) == 0 {
+				return res, false, nil
+			}
+
+			localGroups, err := g.db.GetGroups(ctx, needDB)
+			if err != nil {
+				return nil, false, err
+			}
+
+			localMap := datautil.SliceToMap(localGroups, func(e *model_struct.LocalGroup) string {
+				return e.GroupID
+			})
+			for _, info := range localGroups {
+				g.groupInfoCache.Store(info.GroupID, info)
+				res = append(res, info)
+			}
+
+			if len(localMap) == len(needDB) {
+				return res, false, nil
+			}
+
+			return res, true, nil
+		},
+		func(ctx context.Context, groupIDs []string) ([]*model_struct.LocalGroup, error) {
+			serverGroupInfo, err := g.getGroupsInfoFromServer(ctx, groupIDs)
+			if err != nil {
+				return nil, err
+			}
+			converted := datautil.Batch(ServerGroupToLocalGroup, serverGroupInfo)
+			for _, info := range converted {
+				g.groupInfoCache.Store(info.GroupID, info)
+			}
+			return converted, nil
 		},
 	)
 	return dataFetcher.FetchMissingAndCombineLocal(ctx, groupIDs)

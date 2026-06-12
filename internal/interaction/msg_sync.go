@@ -375,30 +375,52 @@ func (m *MsgSyncer) doPushMsg(ctx context.Context, push *sdkws.PushMessages) {
 	m.pushTriggerAndSync(ctx, push.NotificationMsgs, m.triggerNotification)
 }
 
-func (m *MsgSyncer) pushTriggerAndSync(ctx context.Context, pushMessages map[string]*sdkws.PullMsgs, triggerFunc func(ctx context.Context, msgs map[string]*sdkws.PullMsgs) error) {
+func (m *MsgSyncer) pushTriggerAndSync(ctx context.Context, pushMessages map[string]*sdkws.PullMsgs,
+	triggerFunc func(ctx context.Context, msgs map[string]*sdkws.PullMsgs) error) {
 	if len(pushMessages) == 0 {
 		return
 	}
+
 	needSyncSeqMap := make(map[string][2]int64)
-	var lastSeq int64
-	var storageMsgs []*sdkws.MsgData
+	res := make(map[string]*sdkws.PullMsgs)
+
 	for conversationID, msgs := range pushMessages {
+		var (
+			lastSeq     int64
+			storageMsgs []*sdkws.MsgData
+		)
+
 		for _, msg := range msgs.Msgs {
 			if msg.Seq == 0 {
-				_ = triggerFunc(ctx, map[string]*sdkws.PullMsgs{conversationID: {Msgs: []*sdkws.MsgData{msg}}})
+				_ = triggerFunc(ctx, map[string]*sdkws.PullMsgs{
+					conversationID: {Msgs: []*sdkws.MsgData{msg}},
+				})
 				continue
 			}
 			lastSeq = msg.Seq
 			storageMsgs = append(storageMsgs, msg)
 		}
-		if lastSeq == m.syncedMaxSeqs[conversationID]+int64(len(storageMsgs)) && lastSeq != 0 {
-			log.ZDebug(ctx, "trigger msgs", "msgs", storageMsgs)
-			_ = triggerFunc(ctx, map[string]*sdkws.PullMsgs{conversationID: {Msgs: storageMsgs}})
-			m.syncedMaxSeqs[conversationID] = lastSeq
-		} else if lastSeq != 0 && lastSeq > m.syncedMaxSeqs[conversationID] {
-			//must pull message when message type is notification
-			needSyncSeqMap[conversationID] = [2]int64{m.syncedMaxSeqs[conversationID] + 1, lastSeq}
+
+		if len(storageMsgs) == 0 {
+			continue
 		}
+
+		expectedLast := m.syncedMaxSeqs[conversationID] + int64(len(storageMsgs))
+		if lastSeq == expectedLast {
+			log.ZDebug(ctx, "trigger msgs", "conversationID", conversationID, "msgs", storageMsgs)
+			res[conversationID] = &sdkws.PullMsgs{Msgs: storageMsgs}
+			m.syncedMaxSeqs[conversationID] = lastSeq
+		} else if lastSeq > m.syncedMaxSeqs[conversationID] {
+			// must pull message when message type is notification
+			needSyncSeqMap[conversationID] = [2]int64{
+				m.syncedMaxSeqs[conversationID] + 1,
+				lastSeq,
+			}
+		}
+	}
+
+	if len(res) > 0 {
+		_ = triggerFunc(ctx, res)
 	}
 	m.syncAndTriggerMsgs(ctx, needSyncSeqMap, defaultPullNums)
 }
@@ -412,13 +434,34 @@ func (m *MsgSyncer) doConnected(ctx context.Context) {
 		common.DispatchSyncFlag(ctx, constant.MsgSyncBegin, m.conversationEventQueue)
 	}
 	var resp sdkws.GetMaxSeqResp
-	if err := m.longConnMgr.SendReqWaitResp(ctx, &sdkws.GetMaxSeqReq{UserID: m.loginUserID}, constant.GetNewestSeq, &resp); err != nil {
+	maxRetries := 3                  // max number of retries
+	retryInterval := 2 * time.Second // wait time between retries
+
+	var err error
+	for retry := range maxRetries {
+		if retry > 0 {
+			log.ZWarn(ctx, "retrying to get max seq", nil, "attempt", retry+1, "max", maxRetries)
+
+			// Exponential Backoff Strategy
+			time.Sleep(retryInterval)
+			retryInterval *= 2
+		}
+
+		err = m.longConnMgr.SendReqWaitResp(ctx, &sdkws.GetMaxSeqReq{UserID: m.loginUserID}, constant.GetNewestSeq, &resp)
+		if err == nil {
+			log.ZDebug(ctx, "get max seq success", "resp", resp.MaxSeqs)
+			break
+		}
+
+		log.ZWarn(ctx, "get max seq attempt failed", err, "attempt", retry+1, "max", maxRetries)
+	}
+
+	if err != nil {
 		log.ZError(ctx, "get max seq error", err)
 		common.DispatchSyncFlag(ctx, constant.MsgSyncFailed, m.conversationEventQueue)
 		return
-	} else {
-		log.ZDebug(ctx, "get max seq success", "resp", resp.MaxSeqs)
 	}
+
 	m.compareSeqsAndBatchSync(ctx, resp.MaxSeqs, connectPullNums)
 	if reinstalled {
 		common.DispatchSyncFlag(ctx, constant.AppDataSyncFinish, m.conversationEventQueue)
@@ -665,7 +708,7 @@ func (m *MsgSyncer) syncMsgBySeqs(ctx context.Context, conversationID string, se
 		var pullMsgResp sdkws.PullMessageBySeqsResp
 		err := m.longConnMgr.SendReqWaitResp(ctx, &pullMsgReq, constant.PullMsgByRange, &pullMsgResp)
 		if err != nil {
-			log.ZError(ctx, "syncMsgFromServerSplit err", err, "pullMsgReq", pullMsgReq)
+			log.ZError(ctx, "syncMsgFromServerSplit err", err, "pullMsgReq", &pullMsgReq)
 			continue
 		}
 		i++

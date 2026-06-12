@@ -15,6 +15,7 @@
 package interaction
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -29,8 +30,10 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
+	"github.com/openimsdk/tools/mcontext"
 
 	"github.com/openimsdk/openim-sdk-core/v3/pkg/cliconf"
+	"github.com/openimsdk/openim-sdk-core/v3/version"
 
 	"github.com/openimsdk/openim-sdk-core/v3/open_im_sdk_callback"
 	"github.com/openimsdk/openim-sdk-core/v3/pkg/ccontext"
@@ -60,7 +63,8 @@ const (
 	//Maximum number of reconnection attempts
 	maxReconnectAttempts = 300
 
-	sendAndWaitTime = time.Second * 10
+	sendAndWaitTime  = time.Second * 10
+	sendChainMaxWait = 3 * time.Second
 )
 
 const (
@@ -105,11 +109,30 @@ type LongConnMgr struct {
 	connWrite *sync.Mutex
 
 	sub *subscription
+
+	mb *MessageBatcher
 }
 
 type Message struct {
 	Message GeneralWsReq
 	Resp    chan *GeneralWsResp
+	Order   *ccontext.SendOrderInfo
+}
+
+type laneState struct {
+	laneType ccontext.SendOrderLane
+	expected int64
+	pending  map[int64]Message
+	timer    *time.Timer
+	active   bool
+}
+
+func newLaneState(lane ccontext.SendOrderLane) *laneState {
+	return &laneState{
+		laneType: lane,
+		expected: 1,
+		pending:  make(map[int64]Message),
+	}
 }
 
 func NewLongConnMgr(ctx context.Context, userOnline func(map[string][]int32), pushMsgAndMaxSeqCh, loginMgrCh chan common.Cmd2Value) *LongConnMgr {
@@ -128,12 +151,17 @@ func NewLongConnMgr(ctx context.Context, userOnline func(map[string][]int32), pu
 	l.conn = NewWebSocket(WebSocket)
 	l.connWrite = new(sync.Mutex)
 	l.ctx = ctx
+	l.mb = NewMessageBatcher(l.doBatch)
 	return l
 }
 
+func (c *LongConnMgr) RegisterSendOrder(lane ccontext.SendOrderLane, seq int64, deadline time.Time) {
+	// no-op after simplification
+}
+
 // SetListener sets the user's listener.
-func (l *LongConnMgr) SetListener(listener func() open_im_sdk_callback.OnConnListener) {
-	l.listener = listener
+func (c *LongConnMgr) SetListener(listener func() open_im_sdk_callback.OnConnListener) {
+	c.listener = listener
 }
 
 func (c *LongConnMgr) Run(ctx, fgCtx context.Context) {
@@ -152,6 +180,7 @@ func (c *LongConnMgr) SendReqWaitResp(ctx context.Context, m proto.Message, reqI
 	if err != nil {
 		return sdkerrs.ErrArgs
 	}
+	orderInfo, _ := ccontext.GetSendOrderInfo(ctx)
 	msg := Message{
 		Message: GeneralWsReq{
 			ReqIdentifier: reqIdentifier,
@@ -159,7 +188,8 @@ func (c *LongConnMgr) SendReqWaitResp(ctx context.Context, m proto.Message, reqI
 			OperationID:   ccontext.Info(ctx).OperationID(),
 			Data:          data,
 		},
-		Resp: make(chan *GeneralWsResp, 1),
+		Resp:  make(chan *GeneralWsResp, 1),
+		Order: orderInfo,
 	}
 	c.send <- msg
 	log.ZDebug(ctx, "send message to send channel success", "msg", m, "reqIdentifier", reqIdentifier)
@@ -272,7 +302,17 @@ func (c *LongConnMgr) writePump(ctx context.Context) {
 		c.close()
 		close(c.send)
 	}()
+	textLane := newLaneState(ccontext.SendOrderLaneText)
+	mediaLane := newLaneState(ccontext.SendOrderLaneMedia)
 	for {
+		var textTimer <-chan time.Time
+		if textLane.active && textLane.timer != nil {
+			textTimer = textLane.timer.C
+		}
+		var mediaTimer <-chan time.Time
+		if mediaLane.active && mediaLane.timer != nil {
+			mediaTimer = mediaLane.timer.C
+		}
 		select {
 		case <-ctx.Done():
 			c.closedErr = ctx.Err()
@@ -289,28 +329,107 @@ func (c *LongConnMgr) writePump(ctx context.Context) {
 				c.closedErr = ErrChanClosed
 				return
 			}
-			log.ZDebug(c.ctx, "writePump recv message", "reqIdentifier", message.Message.ReqIdentifier,
-				"operationID", message.Message.OperationID, "sendID", message.Message.SendID)
-			resp, err := c.sendAndWaitResp(&message.Message)
-			if err != nil {
-				resp = &GeneralWsResp{
-					ReqIdentifier: message.Message.ReqIdentifier,
-					OperationID:   message.Message.OperationID,
-					Data:          nil,
-				}
-				if code, ok := errs.Unwrap(err).(errs.CodeError); ok {
-					resp.ErrCode = code.Code()
-					resp.ErrMsg = code.Msg()
-				} else {
-					log.ZError(c.ctx, "writeBinaryMsgAndRetry failed", err, "wsReq", message.Message)
-				}
-
-			}
-			nErr := c.Syncer.notifyCh(message.Resp, resp, 1)
-			if nErr != nil {
-				log.ZError(c.ctx, "DispatchNewMessage failed", nErr, "wsResp", resp)
-			}
+			c.processIncomingMessage(textLane, mediaLane, message)
+		case <-textTimer:
+			c.handleLaneTimeout(textLane)
+		case <-mediaTimer:
+			c.handleLaneTimeout(mediaLane)
 		}
+	}
+}
+
+func (c *LongConnMgr) processIncomingMessage(textLane, mediaLane *laneState, message Message) {
+	if message.Order == nil || !message.Order.Ordered {
+		c.dispatchMessage(message)
+		return
+	}
+	lane := laneByType(message.Order.Lane, textLane, mediaLane)
+	if lane == nil {
+		c.dispatchMessage(message)
+		return
+	}
+	if message.Order.Seq < lane.expected {
+		c.dispatchMessage(message)
+		return
+	}
+	if message.Order.Seq == lane.expected {
+		lane.stopTimer()
+		c.dispatchMessage(message)
+		lane.expected++
+		c.flushLane(lane)
+		return
+	}
+	lane.pending[message.Order.Seq] = message
+	if lane.hasGap() {
+		lane.startTimer()
+	}
+}
+
+func (c *LongConnMgr) handleLaneTimeout(lane *laneState) {
+	if lane == nil {
+		return
+	}
+	lane.stopTimer()
+	lane.expected++
+	for !c.flushLane(lane) {
+		lane.expected++
+		log.ZDebug(c.ctx, "not flushed, add expected seq")
+	}
+}
+
+func (c *LongConnMgr) flushLane(lane *laneState) bool {
+	var flushed bool
+	for {
+		msg, ok := lane.pending[lane.expected]
+		if !ok {
+			break
+		}
+		flushed = true
+		delete(lane.pending, lane.expected)
+		lane.stopTimer()
+		c.dispatchMessage(msg)
+		lane.expected++
+	}
+	if lane.hasGap() {
+		lane.startTimer()
+	} else {
+		lane.stopTimer()
+		flushed = true // prevent dead loop
+	}
+	return flushed
+}
+
+func laneByType(laneType ccontext.SendOrderLane, textLane, mediaLane *laneState) *laneState {
+	switch laneType {
+	case ccontext.SendOrderLaneText:
+		return textLane
+	case ccontext.SendOrderLaneMedia:
+		return mediaLane
+	default:
+		return nil
+	}
+}
+
+func (c *LongConnMgr) dispatchMessage(message Message) {
+	log.ZDebug(c.ctx, "writePump recv message", "reqIdentifier", message.Message.ReqIdentifier,
+		"operationID", message.Message.OperationID, "sendID", message.Message.SendID)
+	resp, err := c.sendAndWaitResp(&message.Message)
+	if err != nil {
+		resp = &GeneralWsResp{
+			ReqIdentifier: message.Message.ReqIdentifier,
+			OperationID:   message.Message.OperationID,
+			Data:          nil,
+		}
+		if code, ok := errs.Unwrap(err).(errs.CodeError); ok {
+			resp.ErrCode = code.Code()
+			resp.ErrMsg = code.Msg()
+		} else {
+			log.ZError(c.ctx, "writeBinaryMsgAndRetry failed", err, "wsReq", message.Message)
+		}
+
+	}
+	if nErr := c.Syncer.notifyCh(message.Resp, resp, 1); nErr != nil {
+		log.ZError(c.ctx, "TriggerCmdNewMsgCome failed", nErr, "wsResp", resp)
 	}
 }
 
@@ -361,6 +480,48 @@ func (c *LongConnMgr) sendPingMessage(ctx context.Context) {
 	} else {
 		log.ZDebug(ctx, "ping Message failed, connection", "connStatus", c.GetConnectionStatus(), "goroutine ID:", getGoroutineID(), "opid", opid)
 	}
+}
+
+func (l *laneState) stopTimer() {
+	if l.timer == nil {
+		return
+	}
+	if !l.timer.Stop() {
+		select {
+		case <-l.timer.C:
+		default:
+		}
+	}
+	l.active = false
+}
+
+func (l *laneState) startTimer() {
+	if l.active {
+		return
+	}
+	delay := sendChainMaxWait
+	if l.timer == nil {
+		l.timer = time.NewTimer(delay)
+	} else {
+		if !l.timer.Stop() {
+			select {
+			case <-l.timer.C:
+			default:
+			}
+		}
+		l.timer.Reset(delay)
+	}
+	l.active = true
+}
+
+func (l *laneState) hasGap() bool {
+	if len(l.pending) == 0 {
+		return false
+	}
+	if _, ok := l.pending[l.expected]; ok {
+		return false
+	}
+	return true
 }
 
 func getGoroutineID() int64 {
@@ -512,10 +673,11 @@ func (c *LongConnMgr) handleMessage(message []byte) error {
 		if err := c.Syncer.NotifyResp(ctx, wsResp); err != nil {
 			log.ZError(ctx, "notifyResp failed", err, "wsResp", wsResp)
 		}
+		c.mb.Close()
 		return sdkerrs.ErrLoginOut
 	case constant.KickOnlineMsg:
 		log.ZDebug(ctx, "socket receive client kicked offline")
-
+		c.mb.Close()
 		err = errs.ErrTokenKicked.WrapMsg("socket receive client kicked offline")
 		ccontext.GetApiErrCodeCallback(ctx).OnError(ctx, err)
 		return err
@@ -655,9 +817,10 @@ func (c *LongConnMgr) reConn(ctx context.Context, num *int) (needRecon bool, err
 	defer c.connWrite.Unlock()
 	c.listener().OnConnecting()
 	c.SetConnectionStatus(Connecting)
-	url := fmt.Sprintf("%s?sendID=%s&token=%s&platformID=%d&operationID=%s&isBackground=%t",
+	url := fmt.Sprintf("%s?sendID=%s&token=%s&platformID=%d&operationID=%s&isBackground=%t&sdkVersion=%s",
 		ccontext.Info(ctx).WsAddr(), ccontext.Info(ctx).UserID(), ccontext.Info(ctx).Token(),
-		ccontext.Info(ctx).PlatformID(), ccontext.Info(ctx).OperationID(), c.GetBackground())
+		ccontext.Info(ctx).PlatformID(), ccontext.Info(ctx).OperationID(), c.GetBackground(),
+		version.Version)
 	if c.IsCompression {
 		url += fmt.Sprintf("&compression=%s", "gzip")
 	}
@@ -725,8 +888,37 @@ func (c *LongConnMgr) doPushMsg(ctx context.Context, wsResp GeneralWsResp) error
 	if err != nil {
 		return err
 	}
-	return common.DispatchPushMsg(ctx, &msg, c.pushMsgAndMaxSeqCh)
+	log.ZDebug(ctx, "recv push msg", "msgNum", len(msg.Msgs), "notificationNum", len(msg.NotificationMsgs), "msg", &msg)
+	c.mb.Enqueue(ctx, &msg)
+	return nil
 }
+
+func (c *LongConnMgr) doBatch(ctxs []context.Context, msg *sdkws.PushMessages) {
+	var ctx context.Context
+	switch len(ctxs) {
+	case 0:
+		return
+	case 1:
+		ctx = ctxs[0]
+	default:
+		var buf bytes.Buffer
+		buf.WriteString("Batch_")
+		for _, v := range ctxs {
+			operationID := mcontext.GetOperationID(v)
+			if operationID != "" {
+				buf.WriteString(operationID)
+				buf.WriteString("$")
+			}
+		}
+		data := buf.Bytes()
+		data = data[:len(data)-1]
+		ctx = mcontext.SetOperationID(ctxs[0], string(data))
+	}
+	if err := common.DispatchPushMsg(ctx, msg, c.pushMsgAndMaxSeqCh); err != nil {
+		log.ZError(ctx, "doBatch DispatchPushMsg", err, "msg", msg)
+	}
+}
+
 func (c *LongConnMgr) Close(ctx context.Context) {
 	if c.GetConnectionStatus() == Connected {
 		log.ZInfo(ctx, "network change conn close")
