@@ -197,6 +197,14 @@ android:
 	go get golang.org/x/mobile/bind
 	GOARCH=amd64 gomobile bind -androidapi 21 -v -trimpath -ldflags='-s -w -extldflags "-Wl,--gc-sections,--as-needed,-z,max-page-size=16384"' -o ./open_im_sdk.aar -target=android ./open_im_sdk/ ./open_im_sdk_callback/
 
+## ohos: Build the HarmonyOS shared library (.so + .h)
+# Note: requires ohos_golang_go and HarmonyOS Command Line Tools (NDK).
+# Usage: make ohos OHOS_SDK_PATH=/path/to/openharmony/native
+# Fallback: make ohos USE_LINUX=1 OHOS_SDK_PATH=/path/to/openharmony/native
+.PHONY: ohos
+ohos:
+	@bash scripts/build-ohos.sh
+
 # Targets
 .PHONY: release
 release: release.verify release.ensure-tag
