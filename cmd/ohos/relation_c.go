@@ -15,7 +15,7 @@
 package main
 
 /*
-#include <stdint.h>
+#include "callback_types.h"
 */
 import "C"
 

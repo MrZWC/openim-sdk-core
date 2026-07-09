@@ -199,11 +199,16 @@ android:
 
 ## ohos: Build the HarmonyOS shared library (.so + .h)
 # Note: requires ohos_golang_go and HarmonyOS Command Line Tools (NDK).
-# Usage: make ohos OHOS_SDK_PATH=/path/to/openharmony/native
-# Fallback: make ohos USE_LINUX=1 OHOS_SDK_PATH=/path/to/openharmony/native
+# Usage (Linux):   make ohos OHOS_SDK_PATH=/path/to/openharmony/native
+# Usage (Windows): make ohos
+# Fallback:        make ohos USE_LINUX=1
 .PHONY: ohos
 ohos:
+ifeq ($(OS),Windows_NT)
+	@powershell -ExecutionPolicy Bypass -File scripts/build-ohos.ps1
+else
 	@bash scripts/build-ohos.sh
+endif
 
 # Targets
 .PHONY: release

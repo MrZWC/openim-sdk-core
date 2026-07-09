@@ -76,15 +76,15 @@ export CGO_CFLAGS="-g -O2 --target=aarch64-linux-ohos --sysroot=${OHOS_SDK_PATH}
 export CGO_LDFLAGS="--target=aarch64-linux-ohos -fuse-ld=lld"
 
 # 选择编译目标平台
-if [ "${USE_LINUX:-0}" = "1" ]; then
-    # 备选方案: 使用 GOOS=linux GOARCH=arm64
-    echo "Using GOOS=linux GOARCH=arm64 (fallback mode)"
-    export GOOS=linux
+# 默认: GOOS=linux (标准 Go 即可, 社区验证可行)
+# 可选: USE_OHOS=1 使用 GOOS=openharmony (需 ohos_golang_go, c-shared 可能不支持)
+if [ "${USE_OHOS:-0}" = "1" ]; then
+    echo "Using GOOS=openharmony GOARCH=arm64 (requires ohos_golang_go)"
+    export GOOS=openharmony
     export GOARCH=arm64
 else
-    # 默认方案: 使用 ohos_golang_go 的 GOOS=openharmony
-    echo "Using GOOS=openharmony GOARCH=arm64"
-    export GOOS=openharmony
+    echo "Using GOOS=linux GOARCH=arm64 (default, works with standard Go)"
+    export GOOS=linux
     export GOARCH=arm64
 fi
 
