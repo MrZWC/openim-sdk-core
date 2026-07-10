@@ -104,11 +104,29 @@ go build -buildmode=c-shared -trimpath -ldflags "-s -w" \
     -o "$OUTPUT_LIB" \
     ./cmd/ohos/
 
+# Post-process: inline callback_types.h into the generated header
+# Replace #include "callback_types.h" with actual content to make header self-contained
+GENERATED_HEADER="${OUTPUT_DIR}/libopenim_sdk.h"
+CALLBACK_TYPES="cmd/ohos/callback_types.h"
+if [ -f "$GENERATED_HEADER" ] && [ -f "$CALLBACK_TYPES" ]; then
+    python3 -c "
+import re
+with open('$GENERATED_HEADER', 'r') as f:
+    header = f.read()
+with open('$CALLBACK_TYPES', 'r') as f:
+    callback = f.read()
+header = header.replace('#include \"callback_types.h\"', callback)
+with open('$GENERATED_HEADER', 'w') as f:
+    f.write(header)
+"
+    echo "  Inlined callback_types.h into generated header"
+fi
+
 echo ""
 echo "===========> Build completed successfully!"
 echo "Output files:"
 echo "  Library: $OUTPUT_LIB"
-echo "  Header:  ${OUTPUT_DIR}/libopenim_sdk.h"
+echo "  Header:  ${OUTPUT_DIR}/libopenim_sdk.h (self-contained)"
 echo ""
 echo "To use in HarmonyOS project:"
 echo "  1. Copy libopenim_sdk.so to your project's libs/arm64-v8a/ directory"

@@ -23,7 +23,384 @@ extern const char *_GoStringPtr(_GoString_ s);
 
 #line 17 "conversation_msg_c.go"
 
-#include "callback_types.h"
+#ifndef OPENIM_CALLBACK_TYPES_H
+#define OPENIM_CALLBACK_TYPES_H
+
+#include <stdint.h>
+#include <stdlib.h>
+
+// ===================== C callback function pointer types =====================
+
+// Base callback
+typedef void (*on_success_t)(const char* data);
+typedef void (*on_error_t)(int32_t err_code, const char* err_msg);
+
+typedef struct {
+    on_success_t on_success;
+    on_error_t   on_error;
+} base_callback_t;
+
+// SendMsg callback (Base + progress)
+typedef void (*on_progress_t)(int progress);
+
+typedef struct {
+    on_success_t  on_success;
+    on_error_t    on_error;
+    on_progress_t on_progress;
+} send_msg_callback_t;
+
+// OnConnListener
+typedef void (*on_connecting_t)();
+typedef void (*on_connect_success_t)();
+typedef void (*on_connect_failed_t)(int32_t err_code, const char* err_msg);
+typedef void (*on_kicked_offline_t)();
+typedef void (*on_user_token_expired_t)();
+typedef void (*on_user_token_invalid_t)(const char* err_msg);
+
+typedef struct {
+    on_connecting_t         on_connecting;
+    on_connect_success_t    on_connect_success;
+    on_connect_failed_t     on_connect_failed;
+    on_kicked_offline_t     on_kicked_offline;
+    on_user_token_expired_t on_user_token_expired;
+    on_user_token_invalid_t on_user_token_invalid;
+} conn_listener_t;
+
+// OnConversationListener
+typedef void (*on_sync_server_start_t)(int reinstalled);
+typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_progress_t)(int progress);
+typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_new_conversation_t)(const char* conversation_list);
+typedef void (*on_conversation_changed_t)(const char* conversation_list);
+typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
+typedef void (*on_conversation_user_input_status_changed_t)(const char* change);
+
+typedef struct {
+    on_sync_server_start_t                      on_sync_server_start;
+    on_sync_server_finish_t                     on_sync_server_finish;
+    on_sync_server_progress_t                   on_sync_server_progress;
+    on_sync_server_failed_t                     on_sync_server_failed;
+    on_new_conversation_t                       on_new_conversation;
+    on_conversation_changed_t                   on_conversation_changed;
+    on_total_unread_count_changed_t             on_total_unread_count_changed;
+    on_conversation_user_input_status_changed_t on_conversation_user_input_status_changed;
+} conversation_listener_t;
+
+// OnAdvancedMsgListener
+typedef void (*on_recv_new_message_t)(const char* message);
+typedef void (*on_recv_c2c_read_receipt_t)(const char* msg_receipt_list);
+typedef void (*on_new_recv_message_revoked_t)(const char* message_revoked);
+typedef void (*on_recv_offline_new_message_t)(const char* message);
+typedef void (*on_msg_deleted_t)(const char* message);
+typedef void (*on_recv_online_only_message_t)(const char* message);
+
+typedef struct {
+    on_recv_new_message_t          on_recv_new_message;
+    on_recv_c2c_read_receipt_t     on_recv_c2c_read_receipt;
+    on_new_recv_message_revoked_t  on_new_recv_message_revoked;
+    on_recv_offline_new_message_t  on_recv_offline_new_message;
+    on_msg_deleted_t               on_msg_deleted;
+    on_recv_online_only_message_t  on_recv_online_only_message;
+} advanced_msg_listener_t;
+
+// OnFriendshipListener
+typedef void (*on_friend_application_added_t)(const char* friend_application);
+typedef void (*on_friend_application_deleted_t)(const char* friend_application);
+typedef void (*on_friend_application_accepted_t)(const char* friend_application);
+typedef void (*on_friend_application_rejected_t)(const char* friend_application);
+typedef void (*on_friend_added_t)(const char* friend_info);
+typedef void (*on_friend_deleted_t)(const char* friend_info);
+typedef void (*on_friend_info_changed_t)(const char* friend_info);
+typedef void (*on_black_added_t)(const char* black_info);
+typedef void (*on_black_deleted_t)(const char* black_info);
+
+typedef struct {
+    on_friend_application_added_t    on_friend_application_added;
+    on_friend_application_deleted_t  on_friend_application_deleted;
+    on_friend_application_accepted_t on_friend_application_accepted;
+    on_friend_application_rejected_t on_friend_application_rejected;
+    on_friend_added_t                on_friend_added;
+    on_friend_deleted_t              on_friend_deleted;
+    on_friend_info_changed_t         on_friend_info_changed;
+    on_black_added_t                 on_black_added;
+    on_black_deleted_t               on_black_deleted;
+} friendship_listener_t;
+
+// OnGroupListener
+typedef void (*on_joined_group_added_t)(const char* group_info);
+typedef void (*on_joined_group_deleted_t)(const char* group_info);
+typedef void (*on_group_member_added_t)(const char* group_member_info);
+typedef void (*on_group_member_deleted_t)(const char* group_member_info);
+typedef void (*on_group_application_added_t)(const char* group_application);
+typedef void (*on_group_application_deleted_t)(const char* group_application);
+typedef void (*on_group_info_changed_t)(const char* group_info);
+typedef void (*on_group_dismissed_t)(const char* group_info);
+typedef void (*on_group_member_info_changed_t)(const char* group_member_info);
+typedef void (*on_group_application_accepted_t)(const char* group_application);
+typedef void (*on_group_application_rejected_t)(const char* group_application);
+
+typedef struct {
+    on_joined_group_added_t           on_joined_group_added;
+    on_joined_group_deleted_t         on_joined_group_deleted;
+    on_group_member_added_t           on_group_member_added;
+    on_group_member_deleted_t         on_group_member_deleted;
+    on_group_application_added_t      on_group_application_added;
+    on_group_application_deleted_t    on_group_application_deleted;
+    on_group_info_changed_t           on_group_info_changed;
+    on_group_dismissed_t              on_group_dismissed;
+    on_group_member_info_changed_t    on_group_member_info_changed;
+    on_group_application_accepted_t   on_group_application_accepted;
+    on_group_application_rejected_t   on_group_application_rejected;
+} group_listener_t;
+
+// OnUserListener
+typedef void (*on_self_info_updated_t)(const char* user_info);
+typedef void (*on_user_status_changed_t)(const char* user_online_status);
+
+typedef struct {
+    on_self_info_updated_t     on_self_info_updated;
+    on_user_status_changed_t   on_user_status_changed;
+} user_listener_t;
+
+// OnCustomBusinessListener
+typedef void (*on_recv_custom_business_message_t)(const char* business_message);
+
+typedef struct {
+    on_recv_custom_business_message_t on_recv_custom_business_message;
+} custom_business_listener_t;
+
+// OnMessageKvInfoListener
+typedef void (*on_message_kv_info_changed_t)(const char* message_changed_list);
+
+typedef struct {
+    on_message_kv_info_changed_t on_message_kv_info_changed;
+} message_kv_info_listener_t;
+
+// UploadFileCallback
+typedef void (*upload_file_open_t)(int64_t size);
+typedef void (*upload_file_part_size_t)(int64_t part_size, int num);
+typedef void (*upload_file_hash_part_progress_t)(int index, int64_t size, const char* part_hash);
+typedef void (*upload_file_hash_part_complete_t)(const char* parts_hash, const char* file_hash);
+typedef void (*upload_file_upload_id_t)(const char* upload_id);
+typedef void (*upload_file_upload_part_complete_t)(int index, int64_t part_size, const char* part_hash);
+typedef void (*upload_file_upload_complete_t)(int64_t file_size, int64_t stream_size, int64_t storage_size);
+typedef void (*upload_file_complete_t)(int64_t size, const char* url, int typ);
+
+typedef struct {
+    upload_file_open_t                     open;
+    upload_file_part_size_t                part_size;
+    upload_file_hash_part_progress_t       hash_part_progress;
+    upload_file_hash_part_complete_t       hash_part_complete;
+    upload_file_upload_id_t                upload_id;
+    upload_file_upload_part_complete_t     upload_part_complete;
+    upload_file_upload_complete_t          upload_complete;
+    upload_file_complete_t                 complete;
+} upload_file_callback_t;
+
+// UploadLogProgress
+typedef void (*upload_log_progress_cb_t)(int64_t current, int64_t size);
+
+typedef struct {
+    upload_log_progress_cb_t on_progress;
+} upload_log_progress_t;
+
+// ===================== C wrapper functions (safe function pointer calls) =====================
+
+// Base callback wrappers
+static void base_cb_on_success(base_callback_t* cb, const char* data) {
+    if (cb && cb->on_success) cb->on_success(data);
+}
+static void base_cb_on_error(base_callback_t* cb, int32_t err_code, const char* err_msg) {
+    if (cb && cb->on_error) cb->on_error(err_code, err_msg);
+}
+
+// SendMsg callback wrappers
+static void send_msg_cb_on_progress(send_msg_callback_t* cb, int progress) {
+    if (cb && cb->on_progress) cb->on_progress(progress);
+}
+
+// OnConnListener wrappers
+static void conn_cb_on_connecting(conn_listener_t* cb) {
+    if (cb && cb->on_connecting) cb->on_connecting();
+}
+static void conn_cb_on_connect_success(conn_listener_t* cb) {
+    if (cb && cb->on_connect_success) cb->on_connect_success();
+}
+static void conn_cb_on_connect_failed(conn_listener_t* cb, int32_t err_code, const char* err_msg) {
+    if (cb && cb->on_connect_failed) cb->on_connect_failed(err_code, err_msg);
+}
+static void conn_cb_on_kicked_offline(conn_listener_t* cb) {
+    if (cb && cb->on_kicked_offline) cb->on_kicked_offline();
+}
+static void conn_cb_on_user_token_expired(conn_listener_t* cb) {
+    if (cb && cb->on_user_token_expired) cb->on_user_token_expired();
+}
+static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_msg) {
+    if (cb && cb->on_user_token_invalid) cb->on_user_token_invalid(err_msg);
+}
+
+// OnConversationListener wrappers
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
+}
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
+}
+static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
+    if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
+}
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
+}
+static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {
+    if (cb && cb->on_new_conversation) cb->on_new_conversation(conversation_list);
+}
+static void conv_cb_on_conversation_changed(conversation_listener_t* cb, const char* conversation_list) {
+    if (cb && cb->on_conversation_changed) cb->on_conversation_changed(conversation_list);
+}
+static void conv_cb_on_total_unread_count_changed(conversation_listener_t* cb, int32_t total_unread_count) {
+    if (cb && cb->on_total_unread_count_changed) cb->on_total_unread_count_changed(total_unread_count);
+}
+static void conv_cb_on_conversation_user_input_status_changed(conversation_listener_t* cb, const char* change) {
+    if (cb && cb->on_conversation_user_input_status_changed) cb->on_conversation_user_input_status_changed(change);
+}
+
+// OnAdvancedMsgListener wrappers
+static void msg_cb_on_recv_new_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_new_message) cb->on_recv_new_message(message);
+}
+static void msg_cb_on_recv_c2c_read_receipt(advanced_msg_listener_t* cb, const char* msg_receipt_list) {
+    if (cb && cb->on_recv_c2c_read_receipt) cb->on_recv_c2c_read_receipt(msg_receipt_list);
+}
+static void msg_cb_on_new_recv_message_revoked(advanced_msg_listener_t* cb, const char* message_revoked) {
+    if (cb && cb->on_new_recv_message_revoked) cb->on_new_recv_message_revoked(message_revoked);
+}
+static void msg_cb_on_recv_offline_new_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_offline_new_message) cb->on_recv_offline_new_message(message);
+}
+static void msg_cb_on_msg_deleted(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_msg_deleted) cb->on_msg_deleted(message);
+}
+static void msg_cb_on_recv_online_only_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_online_only_message) cb->on_recv_online_only_message(message);
+}
+
+// OnFriendshipListener wrappers
+static void friend_cb_on_application_added(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_added) cb->on_friend_application_added(friend_application);
+}
+static void friend_cb_on_application_deleted(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_deleted) cb->on_friend_application_deleted(friend_application);
+}
+static void friend_cb_on_application_accepted(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_accepted) cb->on_friend_application_accepted(friend_application);
+}
+static void friend_cb_on_application_rejected(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_rejected) cb->on_friend_application_rejected(friend_application);
+}
+static void friend_cb_on_friend_added(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_added) cb->on_friend_added(friend_info);
+}
+static void friend_cb_on_friend_deleted(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_deleted) cb->on_friend_deleted(friend_info);
+}
+static void friend_cb_on_friend_info_changed(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_info_changed) cb->on_friend_info_changed(friend_info);
+}
+static void friend_cb_on_black_added(friendship_listener_t* cb, const char* black_info) {
+    if (cb && cb->on_black_added) cb->on_black_added(black_info);
+}
+static void friend_cb_on_black_deleted(friendship_listener_t* cb, const char* black_info) {
+    if (cb && cb->on_black_deleted) cb->on_black_deleted(black_info);
+}
+
+// OnGroupListener wrappers
+static void group_cb_on_joined_group_added(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_joined_group_added) cb->on_joined_group_added(group_info);
+}
+static void group_cb_on_joined_group_deleted(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_joined_group_deleted) cb->on_joined_group_deleted(group_info);
+}
+static void group_cb_on_group_member_added(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_added) cb->on_group_member_added(group_member_info);
+}
+static void group_cb_on_group_member_deleted(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_deleted) cb->on_group_member_deleted(group_member_info);
+}
+static void group_cb_on_group_application_added(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_added) cb->on_group_application_added(group_application);
+}
+static void group_cb_on_group_application_deleted(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_deleted) cb->on_group_application_deleted(group_application);
+}
+static void group_cb_on_group_info_changed(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_group_info_changed) cb->on_group_info_changed(group_info);
+}
+static void group_cb_on_group_dismissed(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_group_dismissed) cb->on_group_dismissed(group_info);
+}
+static void group_cb_on_group_member_info_changed(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_info_changed) cb->on_group_member_info_changed(group_member_info);
+}
+static void group_cb_on_group_application_accepted(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_accepted) cb->on_group_application_accepted(group_application);
+}
+static void group_cb_on_group_application_rejected(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_rejected) cb->on_group_application_rejected(group_application);
+}
+
+// OnUserListener wrappers
+static void user_cb_on_self_info_updated(user_listener_t* cb, const char* user_info) {
+    if (cb && cb->on_self_info_updated) cb->on_self_info_updated(user_info);
+}
+static void user_cb_on_user_status_changed(user_listener_t* cb, const char* user_online_status) {
+    if (cb && cb->on_user_status_changed) cb->on_user_status_changed(user_online_status);
+}
+
+// OnCustomBusinessListener wrapper
+static void business_cb_on_recv(custom_business_listener_t* cb, const char* business_message) {
+    if (cb && cb->on_recv_custom_business_message) cb->on_recv_custom_business_message(business_message);
+}
+
+// OnMessageKvInfoListener wrapper
+static void msgkv_cb_on_changed(message_kv_info_listener_t* cb, const char* message_changed_list) {
+    if (cb && cb->on_message_kv_info_changed) cb->on_message_kv_info_changed(message_changed_list);
+}
+
+// UploadFileCallback wrappers
+static void upload_file_cb_open(upload_file_callback_t* cb, int64_t size) {
+    if (cb && cb->open) cb->open(size);
+}
+static void upload_file_cb_part_size(upload_file_callback_t* cb, int64_t part_size, int num) {
+    if (cb && cb->part_size) cb->part_size(part_size, num);
+}
+static void upload_file_cb_hash_part_progress(upload_file_callback_t* cb, int index, int64_t size, const char* part_hash) {
+    if (cb && cb->hash_part_progress) cb->hash_part_progress(index, size, part_hash);
+}
+static void upload_file_cb_hash_part_complete(upload_file_callback_t* cb, const char* parts_hash, const char* file_hash) {
+    if (cb && cb->hash_part_complete) cb->hash_part_complete(parts_hash, file_hash);
+}
+static void upload_file_cb_upload_id(upload_file_callback_t* cb, const char* upload_id) {
+    if (cb && cb->upload_id) cb->upload_id(upload_id);
+}
+static void upload_file_cb_upload_part_complete(upload_file_callback_t* cb, int index, int64_t part_size, const char* part_hash) {
+    if (cb && cb->upload_part_complete) cb->upload_part_complete(index, part_size, part_hash);
+}
+static void upload_file_cb_upload_complete(upload_file_callback_t* cb, int64_t file_size, int64_t stream_size, int64_t storage_size) {
+    if (cb && cb->upload_complete) cb->upload_complete(file_size, stream_size, storage_size);
+}
+static void upload_file_cb_complete(upload_file_callback_t* cb, int64_t size, const char* url, int typ) {
+    if (cb && cb->complete) cb->complete(size, url, typ);
+}
+
+// UploadLogProgress wrapper
+static void upload_log_cb_on_progress(upload_log_progress_t* cb, int64_t current, int64_t size) {
+    if (cb && cb->on_progress) cb->on_progress(current, size);
+}
+
+#endif // OPENIM_CALLBACK_TYPES_H
+
 
 #line 1 "cgo-generated-wrapper"
 
@@ -35,43 +412,2682 @@ extern const char *_GoStringPtr(_GoString_ s);
 
 #line 17 "group_c.go"
 
-#include "callback_types.h"
+#ifndef OPENIM_CALLBACK_TYPES_H
+#define OPENIM_CALLBACK_TYPES_H
+
+#include <stdint.h>
+#include <stdlib.h>
+
+// ===================== C callback function pointer types =====================
+
+// Base callback
+typedef void (*on_success_t)(const char* data);
+typedef void (*on_error_t)(int32_t err_code, const char* err_msg);
+
+typedef struct {
+    on_success_t on_success;
+    on_error_t   on_error;
+} base_callback_t;
+
+// SendMsg callback (Base + progress)
+typedef void (*on_progress_t)(int progress);
+
+typedef struct {
+    on_success_t  on_success;
+    on_error_t    on_error;
+    on_progress_t on_progress;
+} send_msg_callback_t;
+
+// OnConnListener
+typedef void (*on_connecting_t)();
+typedef void (*on_connect_success_t)();
+typedef void (*on_connect_failed_t)(int32_t err_code, const char* err_msg);
+typedef void (*on_kicked_offline_t)();
+typedef void (*on_user_token_expired_t)();
+typedef void (*on_user_token_invalid_t)(const char* err_msg);
+
+typedef struct {
+    on_connecting_t         on_connecting;
+    on_connect_success_t    on_connect_success;
+    on_connect_failed_t     on_connect_failed;
+    on_kicked_offline_t     on_kicked_offline;
+    on_user_token_expired_t on_user_token_expired;
+    on_user_token_invalid_t on_user_token_invalid;
+} conn_listener_t;
+
+// OnConversationListener
+typedef void (*on_sync_server_start_t)(int reinstalled);
+typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_progress_t)(int progress);
+typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_new_conversation_t)(const char* conversation_list);
+typedef void (*on_conversation_changed_t)(const char* conversation_list);
+typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
+typedef void (*on_conversation_user_input_status_changed_t)(const char* change);
+
+typedef struct {
+    on_sync_server_start_t                      on_sync_server_start;
+    on_sync_server_finish_t                     on_sync_server_finish;
+    on_sync_server_progress_t                   on_sync_server_progress;
+    on_sync_server_failed_t                     on_sync_server_failed;
+    on_new_conversation_t                       on_new_conversation;
+    on_conversation_changed_t                   on_conversation_changed;
+    on_total_unread_count_changed_t             on_total_unread_count_changed;
+    on_conversation_user_input_status_changed_t on_conversation_user_input_status_changed;
+} conversation_listener_t;
+
+// OnAdvancedMsgListener
+typedef void (*on_recv_new_message_t)(const char* message);
+typedef void (*on_recv_c2c_read_receipt_t)(const char* msg_receipt_list);
+typedef void (*on_new_recv_message_revoked_t)(const char* message_revoked);
+typedef void (*on_recv_offline_new_message_t)(const char* message);
+typedef void (*on_msg_deleted_t)(const char* message);
+typedef void (*on_recv_online_only_message_t)(const char* message);
+
+typedef struct {
+    on_recv_new_message_t          on_recv_new_message;
+    on_recv_c2c_read_receipt_t     on_recv_c2c_read_receipt;
+    on_new_recv_message_revoked_t  on_new_recv_message_revoked;
+    on_recv_offline_new_message_t  on_recv_offline_new_message;
+    on_msg_deleted_t               on_msg_deleted;
+    on_recv_online_only_message_t  on_recv_online_only_message;
+} advanced_msg_listener_t;
+
+// OnFriendshipListener
+typedef void (*on_friend_application_added_t)(const char* friend_application);
+typedef void (*on_friend_application_deleted_t)(const char* friend_application);
+typedef void (*on_friend_application_accepted_t)(const char* friend_application);
+typedef void (*on_friend_application_rejected_t)(const char* friend_application);
+typedef void (*on_friend_added_t)(const char* friend_info);
+typedef void (*on_friend_deleted_t)(const char* friend_info);
+typedef void (*on_friend_info_changed_t)(const char* friend_info);
+typedef void (*on_black_added_t)(const char* black_info);
+typedef void (*on_black_deleted_t)(const char* black_info);
+
+typedef struct {
+    on_friend_application_added_t    on_friend_application_added;
+    on_friend_application_deleted_t  on_friend_application_deleted;
+    on_friend_application_accepted_t on_friend_application_accepted;
+    on_friend_application_rejected_t on_friend_application_rejected;
+    on_friend_added_t                on_friend_added;
+    on_friend_deleted_t              on_friend_deleted;
+    on_friend_info_changed_t         on_friend_info_changed;
+    on_black_added_t                 on_black_added;
+    on_black_deleted_t               on_black_deleted;
+} friendship_listener_t;
+
+// OnGroupListener
+typedef void (*on_joined_group_added_t)(const char* group_info);
+typedef void (*on_joined_group_deleted_t)(const char* group_info);
+typedef void (*on_group_member_added_t)(const char* group_member_info);
+typedef void (*on_group_member_deleted_t)(const char* group_member_info);
+typedef void (*on_group_application_added_t)(const char* group_application);
+typedef void (*on_group_application_deleted_t)(const char* group_application);
+typedef void (*on_group_info_changed_t)(const char* group_info);
+typedef void (*on_group_dismissed_t)(const char* group_info);
+typedef void (*on_group_member_info_changed_t)(const char* group_member_info);
+typedef void (*on_group_application_accepted_t)(const char* group_application);
+typedef void (*on_group_application_rejected_t)(const char* group_application);
+
+typedef struct {
+    on_joined_group_added_t           on_joined_group_added;
+    on_joined_group_deleted_t         on_joined_group_deleted;
+    on_group_member_added_t           on_group_member_added;
+    on_group_member_deleted_t         on_group_member_deleted;
+    on_group_application_added_t      on_group_application_added;
+    on_group_application_deleted_t    on_group_application_deleted;
+    on_group_info_changed_t           on_group_info_changed;
+    on_group_dismissed_t              on_group_dismissed;
+    on_group_member_info_changed_t    on_group_member_info_changed;
+    on_group_application_accepted_t   on_group_application_accepted;
+    on_group_application_rejected_t   on_group_application_rejected;
+} group_listener_t;
+
+// OnUserListener
+typedef void (*on_self_info_updated_t)(const char* user_info);
+typedef void (*on_user_status_changed_t)(const char* user_online_status);
+
+typedef struct {
+    on_self_info_updated_t     on_self_info_updated;
+    on_user_status_changed_t   on_user_status_changed;
+} user_listener_t;
+
+// OnCustomBusinessListener
+typedef void (*on_recv_custom_business_message_t)(const char* business_message);
+
+typedef struct {
+    on_recv_custom_business_message_t on_recv_custom_business_message;
+} custom_business_listener_t;
+
+// OnMessageKvInfoListener
+typedef void (*on_message_kv_info_changed_t)(const char* message_changed_list);
+
+typedef struct {
+    on_message_kv_info_changed_t on_message_kv_info_changed;
+} message_kv_info_listener_t;
+
+// UploadFileCallback
+typedef void (*upload_file_open_t)(int64_t size);
+typedef void (*upload_file_part_size_t)(int64_t part_size, int num);
+typedef void (*upload_file_hash_part_progress_t)(int index, int64_t size, const char* part_hash);
+typedef void (*upload_file_hash_part_complete_t)(const char* parts_hash, const char* file_hash);
+typedef void (*upload_file_upload_id_t)(const char* upload_id);
+typedef void (*upload_file_upload_part_complete_t)(int index, int64_t part_size, const char* part_hash);
+typedef void (*upload_file_upload_complete_t)(int64_t file_size, int64_t stream_size, int64_t storage_size);
+typedef void (*upload_file_complete_t)(int64_t size, const char* url, int typ);
+
+typedef struct {
+    upload_file_open_t                     open;
+    upload_file_part_size_t                part_size;
+    upload_file_hash_part_progress_t       hash_part_progress;
+    upload_file_hash_part_complete_t       hash_part_complete;
+    upload_file_upload_id_t                upload_id;
+    upload_file_upload_part_complete_t     upload_part_complete;
+    upload_file_upload_complete_t          upload_complete;
+    upload_file_complete_t                 complete;
+} upload_file_callback_t;
+
+// UploadLogProgress
+typedef void (*upload_log_progress_cb_t)(int64_t current, int64_t size);
+
+typedef struct {
+    upload_log_progress_cb_t on_progress;
+} upload_log_progress_t;
+
+// ===================== C wrapper functions (safe function pointer calls) =====================
+
+// Base callback wrappers
+static void base_cb_on_success(base_callback_t* cb, const char* data) {
+    if (cb && cb->on_success) cb->on_success(data);
+}
+static void base_cb_on_error(base_callback_t* cb, int32_t err_code, const char* err_msg) {
+    if (cb && cb->on_error) cb->on_error(err_code, err_msg);
+}
+
+// SendMsg callback wrappers
+static void send_msg_cb_on_progress(send_msg_callback_t* cb, int progress) {
+    if (cb && cb->on_progress) cb->on_progress(progress);
+}
+
+// OnConnListener wrappers
+static void conn_cb_on_connecting(conn_listener_t* cb) {
+    if (cb && cb->on_connecting) cb->on_connecting();
+}
+static void conn_cb_on_connect_success(conn_listener_t* cb) {
+    if (cb && cb->on_connect_success) cb->on_connect_success();
+}
+static void conn_cb_on_connect_failed(conn_listener_t* cb, int32_t err_code, const char* err_msg) {
+    if (cb && cb->on_connect_failed) cb->on_connect_failed(err_code, err_msg);
+}
+static void conn_cb_on_kicked_offline(conn_listener_t* cb) {
+    if (cb && cb->on_kicked_offline) cb->on_kicked_offline();
+}
+static void conn_cb_on_user_token_expired(conn_listener_t* cb) {
+    if (cb && cb->on_user_token_expired) cb->on_user_token_expired();
+}
+static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_msg) {
+    if (cb && cb->on_user_token_invalid) cb->on_user_token_invalid(err_msg);
+}
+
+// OnConversationListener wrappers
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
+}
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
+}
+static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
+    if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
+}
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
+}
+static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {
+    if (cb && cb->on_new_conversation) cb->on_new_conversation(conversation_list);
+}
+static void conv_cb_on_conversation_changed(conversation_listener_t* cb, const char* conversation_list) {
+    if (cb && cb->on_conversation_changed) cb->on_conversation_changed(conversation_list);
+}
+static void conv_cb_on_total_unread_count_changed(conversation_listener_t* cb, int32_t total_unread_count) {
+    if (cb && cb->on_total_unread_count_changed) cb->on_total_unread_count_changed(total_unread_count);
+}
+static void conv_cb_on_conversation_user_input_status_changed(conversation_listener_t* cb, const char* change) {
+    if (cb && cb->on_conversation_user_input_status_changed) cb->on_conversation_user_input_status_changed(change);
+}
+
+// OnAdvancedMsgListener wrappers
+static void msg_cb_on_recv_new_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_new_message) cb->on_recv_new_message(message);
+}
+static void msg_cb_on_recv_c2c_read_receipt(advanced_msg_listener_t* cb, const char* msg_receipt_list) {
+    if (cb && cb->on_recv_c2c_read_receipt) cb->on_recv_c2c_read_receipt(msg_receipt_list);
+}
+static void msg_cb_on_new_recv_message_revoked(advanced_msg_listener_t* cb, const char* message_revoked) {
+    if (cb && cb->on_new_recv_message_revoked) cb->on_new_recv_message_revoked(message_revoked);
+}
+static void msg_cb_on_recv_offline_new_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_offline_new_message) cb->on_recv_offline_new_message(message);
+}
+static void msg_cb_on_msg_deleted(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_msg_deleted) cb->on_msg_deleted(message);
+}
+static void msg_cb_on_recv_online_only_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_online_only_message) cb->on_recv_online_only_message(message);
+}
+
+// OnFriendshipListener wrappers
+static void friend_cb_on_application_added(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_added) cb->on_friend_application_added(friend_application);
+}
+static void friend_cb_on_application_deleted(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_deleted) cb->on_friend_application_deleted(friend_application);
+}
+static void friend_cb_on_application_accepted(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_accepted) cb->on_friend_application_accepted(friend_application);
+}
+static void friend_cb_on_application_rejected(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_rejected) cb->on_friend_application_rejected(friend_application);
+}
+static void friend_cb_on_friend_added(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_added) cb->on_friend_added(friend_info);
+}
+static void friend_cb_on_friend_deleted(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_deleted) cb->on_friend_deleted(friend_info);
+}
+static void friend_cb_on_friend_info_changed(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_info_changed) cb->on_friend_info_changed(friend_info);
+}
+static void friend_cb_on_black_added(friendship_listener_t* cb, const char* black_info) {
+    if (cb && cb->on_black_added) cb->on_black_added(black_info);
+}
+static void friend_cb_on_black_deleted(friendship_listener_t* cb, const char* black_info) {
+    if (cb && cb->on_black_deleted) cb->on_black_deleted(black_info);
+}
+
+// OnGroupListener wrappers
+static void group_cb_on_joined_group_added(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_joined_group_added) cb->on_joined_group_added(group_info);
+}
+static void group_cb_on_joined_group_deleted(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_joined_group_deleted) cb->on_joined_group_deleted(group_info);
+}
+static void group_cb_on_group_member_added(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_added) cb->on_group_member_added(group_member_info);
+}
+static void group_cb_on_group_member_deleted(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_deleted) cb->on_group_member_deleted(group_member_info);
+}
+static void group_cb_on_group_application_added(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_added) cb->on_group_application_added(group_application);
+}
+static void group_cb_on_group_application_deleted(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_deleted) cb->on_group_application_deleted(group_application);
+}
+static void group_cb_on_group_info_changed(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_group_info_changed) cb->on_group_info_changed(group_info);
+}
+static void group_cb_on_group_dismissed(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_group_dismissed) cb->on_group_dismissed(group_info);
+}
+static void group_cb_on_group_member_info_changed(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_info_changed) cb->on_group_member_info_changed(group_member_info);
+}
+static void group_cb_on_group_application_accepted(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_accepted) cb->on_group_application_accepted(group_application);
+}
+static void group_cb_on_group_application_rejected(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_rejected) cb->on_group_application_rejected(group_application);
+}
+
+// OnUserListener wrappers
+static void user_cb_on_self_info_updated(user_listener_t* cb, const char* user_info) {
+    if (cb && cb->on_self_info_updated) cb->on_self_info_updated(user_info);
+}
+static void user_cb_on_user_status_changed(user_listener_t* cb, const char* user_online_status) {
+    if (cb && cb->on_user_status_changed) cb->on_user_status_changed(user_online_status);
+}
+
+// OnCustomBusinessListener wrapper
+static void business_cb_on_recv(custom_business_listener_t* cb, const char* business_message) {
+    if (cb && cb->on_recv_custom_business_message) cb->on_recv_custom_business_message(business_message);
+}
+
+// OnMessageKvInfoListener wrapper
+static void msgkv_cb_on_changed(message_kv_info_listener_t* cb, const char* message_changed_list) {
+    if (cb && cb->on_message_kv_info_changed) cb->on_message_kv_info_changed(message_changed_list);
+}
+
+// UploadFileCallback wrappers
+static void upload_file_cb_open(upload_file_callback_t* cb, int64_t size) {
+    if (cb && cb->open) cb->open(size);
+}
+static void upload_file_cb_part_size(upload_file_callback_t* cb, int64_t part_size, int num) {
+    if (cb && cb->part_size) cb->part_size(part_size, num);
+}
+static void upload_file_cb_hash_part_progress(upload_file_callback_t* cb, int index, int64_t size, const char* part_hash) {
+    if (cb && cb->hash_part_progress) cb->hash_part_progress(index, size, part_hash);
+}
+static void upload_file_cb_hash_part_complete(upload_file_callback_t* cb, const char* parts_hash, const char* file_hash) {
+    if (cb && cb->hash_part_complete) cb->hash_part_complete(parts_hash, file_hash);
+}
+static void upload_file_cb_upload_id(upload_file_callback_t* cb, const char* upload_id) {
+    if (cb && cb->upload_id) cb->upload_id(upload_id);
+}
+static void upload_file_cb_upload_part_complete(upload_file_callback_t* cb, int index, int64_t part_size, const char* part_hash) {
+    if (cb && cb->upload_part_complete) cb->upload_part_complete(index, part_size, part_hash);
+}
+static void upload_file_cb_upload_complete(upload_file_callback_t* cb, int64_t file_size, int64_t stream_size, int64_t storage_size) {
+    if (cb && cb->upload_complete) cb->upload_complete(file_size, stream_size, storage_size);
+}
+static void upload_file_cb_complete(upload_file_callback_t* cb, int64_t size, const char* url, int typ) {
+    if (cb && cb->complete) cb->complete(size, url, typ);
+}
+
+// UploadLogProgress wrapper
+static void upload_log_cb_on_progress(upload_log_progress_t* cb, int64_t current, int64_t size) {
+    if (cb && cb->on_progress) cb->on_progress(current, size);
+}
+
+#endif // OPENIM_CALLBACK_TYPES_H
+
 
 #line 1 "cgo-generated-wrapper"
 
 #line 17 "init_login_c.go"
 
-#include "callback_types.h"
+#ifndef OPENIM_CALLBACK_TYPES_H
+#define OPENIM_CALLBACK_TYPES_H
+
+#include <stdint.h>
+#include <stdlib.h>
+
+// ===================== C callback function pointer types =====================
+
+// Base callback
+typedef void (*on_success_t)(const char* data);
+typedef void (*on_error_t)(int32_t err_code, const char* err_msg);
+
+typedef struct {
+    on_success_t on_success;
+    on_error_t   on_error;
+} base_callback_t;
+
+// SendMsg callback (Base + progress)
+typedef void (*on_progress_t)(int progress);
+
+typedef struct {
+    on_success_t  on_success;
+    on_error_t    on_error;
+    on_progress_t on_progress;
+} send_msg_callback_t;
+
+// OnConnListener
+typedef void (*on_connecting_t)();
+typedef void (*on_connect_success_t)();
+typedef void (*on_connect_failed_t)(int32_t err_code, const char* err_msg);
+typedef void (*on_kicked_offline_t)();
+typedef void (*on_user_token_expired_t)();
+typedef void (*on_user_token_invalid_t)(const char* err_msg);
+
+typedef struct {
+    on_connecting_t         on_connecting;
+    on_connect_success_t    on_connect_success;
+    on_connect_failed_t     on_connect_failed;
+    on_kicked_offline_t     on_kicked_offline;
+    on_user_token_expired_t on_user_token_expired;
+    on_user_token_invalid_t on_user_token_invalid;
+} conn_listener_t;
+
+// OnConversationListener
+typedef void (*on_sync_server_start_t)(int reinstalled);
+typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_progress_t)(int progress);
+typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_new_conversation_t)(const char* conversation_list);
+typedef void (*on_conversation_changed_t)(const char* conversation_list);
+typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
+typedef void (*on_conversation_user_input_status_changed_t)(const char* change);
+
+typedef struct {
+    on_sync_server_start_t                      on_sync_server_start;
+    on_sync_server_finish_t                     on_sync_server_finish;
+    on_sync_server_progress_t                   on_sync_server_progress;
+    on_sync_server_failed_t                     on_sync_server_failed;
+    on_new_conversation_t                       on_new_conversation;
+    on_conversation_changed_t                   on_conversation_changed;
+    on_total_unread_count_changed_t             on_total_unread_count_changed;
+    on_conversation_user_input_status_changed_t on_conversation_user_input_status_changed;
+} conversation_listener_t;
+
+// OnAdvancedMsgListener
+typedef void (*on_recv_new_message_t)(const char* message);
+typedef void (*on_recv_c2c_read_receipt_t)(const char* msg_receipt_list);
+typedef void (*on_new_recv_message_revoked_t)(const char* message_revoked);
+typedef void (*on_recv_offline_new_message_t)(const char* message);
+typedef void (*on_msg_deleted_t)(const char* message);
+typedef void (*on_recv_online_only_message_t)(const char* message);
+
+typedef struct {
+    on_recv_new_message_t          on_recv_new_message;
+    on_recv_c2c_read_receipt_t     on_recv_c2c_read_receipt;
+    on_new_recv_message_revoked_t  on_new_recv_message_revoked;
+    on_recv_offline_new_message_t  on_recv_offline_new_message;
+    on_msg_deleted_t               on_msg_deleted;
+    on_recv_online_only_message_t  on_recv_online_only_message;
+} advanced_msg_listener_t;
+
+// OnFriendshipListener
+typedef void (*on_friend_application_added_t)(const char* friend_application);
+typedef void (*on_friend_application_deleted_t)(const char* friend_application);
+typedef void (*on_friend_application_accepted_t)(const char* friend_application);
+typedef void (*on_friend_application_rejected_t)(const char* friend_application);
+typedef void (*on_friend_added_t)(const char* friend_info);
+typedef void (*on_friend_deleted_t)(const char* friend_info);
+typedef void (*on_friend_info_changed_t)(const char* friend_info);
+typedef void (*on_black_added_t)(const char* black_info);
+typedef void (*on_black_deleted_t)(const char* black_info);
+
+typedef struct {
+    on_friend_application_added_t    on_friend_application_added;
+    on_friend_application_deleted_t  on_friend_application_deleted;
+    on_friend_application_accepted_t on_friend_application_accepted;
+    on_friend_application_rejected_t on_friend_application_rejected;
+    on_friend_added_t                on_friend_added;
+    on_friend_deleted_t              on_friend_deleted;
+    on_friend_info_changed_t         on_friend_info_changed;
+    on_black_added_t                 on_black_added;
+    on_black_deleted_t               on_black_deleted;
+} friendship_listener_t;
+
+// OnGroupListener
+typedef void (*on_joined_group_added_t)(const char* group_info);
+typedef void (*on_joined_group_deleted_t)(const char* group_info);
+typedef void (*on_group_member_added_t)(const char* group_member_info);
+typedef void (*on_group_member_deleted_t)(const char* group_member_info);
+typedef void (*on_group_application_added_t)(const char* group_application);
+typedef void (*on_group_application_deleted_t)(const char* group_application);
+typedef void (*on_group_info_changed_t)(const char* group_info);
+typedef void (*on_group_dismissed_t)(const char* group_info);
+typedef void (*on_group_member_info_changed_t)(const char* group_member_info);
+typedef void (*on_group_application_accepted_t)(const char* group_application);
+typedef void (*on_group_application_rejected_t)(const char* group_application);
+
+typedef struct {
+    on_joined_group_added_t           on_joined_group_added;
+    on_joined_group_deleted_t         on_joined_group_deleted;
+    on_group_member_added_t           on_group_member_added;
+    on_group_member_deleted_t         on_group_member_deleted;
+    on_group_application_added_t      on_group_application_added;
+    on_group_application_deleted_t    on_group_application_deleted;
+    on_group_info_changed_t           on_group_info_changed;
+    on_group_dismissed_t              on_group_dismissed;
+    on_group_member_info_changed_t    on_group_member_info_changed;
+    on_group_application_accepted_t   on_group_application_accepted;
+    on_group_application_rejected_t   on_group_application_rejected;
+} group_listener_t;
+
+// OnUserListener
+typedef void (*on_self_info_updated_t)(const char* user_info);
+typedef void (*on_user_status_changed_t)(const char* user_online_status);
+
+typedef struct {
+    on_self_info_updated_t     on_self_info_updated;
+    on_user_status_changed_t   on_user_status_changed;
+} user_listener_t;
+
+// OnCustomBusinessListener
+typedef void (*on_recv_custom_business_message_t)(const char* business_message);
+
+typedef struct {
+    on_recv_custom_business_message_t on_recv_custom_business_message;
+} custom_business_listener_t;
+
+// OnMessageKvInfoListener
+typedef void (*on_message_kv_info_changed_t)(const char* message_changed_list);
+
+typedef struct {
+    on_message_kv_info_changed_t on_message_kv_info_changed;
+} message_kv_info_listener_t;
+
+// UploadFileCallback
+typedef void (*upload_file_open_t)(int64_t size);
+typedef void (*upload_file_part_size_t)(int64_t part_size, int num);
+typedef void (*upload_file_hash_part_progress_t)(int index, int64_t size, const char* part_hash);
+typedef void (*upload_file_hash_part_complete_t)(const char* parts_hash, const char* file_hash);
+typedef void (*upload_file_upload_id_t)(const char* upload_id);
+typedef void (*upload_file_upload_part_complete_t)(int index, int64_t part_size, const char* part_hash);
+typedef void (*upload_file_upload_complete_t)(int64_t file_size, int64_t stream_size, int64_t storage_size);
+typedef void (*upload_file_complete_t)(int64_t size, const char* url, int typ);
+
+typedef struct {
+    upload_file_open_t                     open;
+    upload_file_part_size_t                part_size;
+    upload_file_hash_part_progress_t       hash_part_progress;
+    upload_file_hash_part_complete_t       hash_part_complete;
+    upload_file_upload_id_t                upload_id;
+    upload_file_upload_part_complete_t     upload_part_complete;
+    upload_file_upload_complete_t          upload_complete;
+    upload_file_complete_t                 complete;
+} upload_file_callback_t;
+
+// UploadLogProgress
+typedef void (*upload_log_progress_cb_t)(int64_t current, int64_t size);
+
+typedef struct {
+    upload_log_progress_cb_t on_progress;
+} upload_log_progress_t;
+
+// ===================== C wrapper functions (safe function pointer calls) =====================
+
+// Base callback wrappers
+static void base_cb_on_success(base_callback_t* cb, const char* data) {
+    if (cb && cb->on_success) cb->on_success(data);
+}
+static void base_cb_on_error(base_callback_t* cb, int32_t err_code, const char* err_msg) {
+    if (cb && cb->on_error) cb->on_error(err_code, err_msg);
+}
+
+// SendMsg callback wrappers
+static void send_msg_cb_on_progress(send_msg_callback_t* cb, int progress) {
+    if (cb && cb->on_progress) cb->on_progress(progress);
+}
+
+// OnConnListener wrappers
+static void conn_cb_on_connecting(conn_listener_t* cb) {
+    if (cb && cb->on_connecting) cb->on_connecting();
+}
+static void conn_cb_on_connect_success(conn_listener_t* cb) {
+    if (cb && cb->on_connect_success) cb->on_connect_success();
+}
+static void conn_cb_on_connect_failed(conn_listener_t* cb, int32_t err_code, const char* err_msg) {
+    if (cb && cb->on_connect_failed) cb->on_connect_failed(err_code, err_msg);
+}
+static void conn_cb_on_kicked_offline(conn_listener_t* cb) {
+    if (cb && cb->on_kicked_offline) cb->on_kicked_offline();
+}
+static void conn_cb_on_user_token_expired(conn_listener_t* cb) {
+    if (cb && cb->on_user_token_expired) cb->on_user_token_expired();
+}
+static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_msg) {
+    if (cb && cb->on_user_token_invalid) cb->on_user_token_invalid(err_msg);
+}
+
+// OnConversationListener wrappers
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
+}
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
+}
+static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
+    if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
+}
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
+}
+static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {
+    if (cb && cb->on_new_conversation) cb->on_new_conversation(conversation_list);
+}
+static void conv_cb_on_conversation_changed(conversation_listener_t* cb, const char* conversation_list) {
+    if (cb && cb->on_conversation_changed) cb->on_conversation_changed(conversation_list);
+}
+static void conv_cb_on_total_unread_count_changed(conversation_listener_t* cb, int32_t total_unread_count) {
+    if (cb && cb->on_total_unread_count_changed) cb->on_total_unread_count_changed(total_unread_count);
+}
+static void conv_cb_on_conversation_user_input_status_changed(conversation_listener_t* cb, const char* change) {
+    if (cb && cb->on_conversation_user_input_status_changed) cb->on_conversation_user_input_status_changed(change);
+}
+
+// OnAdvancedMsgListener wrappers
+static void msg_cb_on_recv_new_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_new_message) cb->on_recv_new_message(message);
+}
+static void msg_cb_on_recv_c2c_read_receipt(advanced_msg_listener_t* cb, const char* msg_receipt_list) {
+    if (cb && cb->on_recv_c2c_read_receipt) cb->on_recv_c2c_read_receipt(msg_receipt_list);
+}
+static void msg_cb_on_new_recv_message_revoked(advanced_msg_listener_t* cb, const char* message_revoked) {
+    if (cb && cb->on_new_recv_message_revoked) cb->on_new_recv_message_revoked(message_revoked);
+}
+static void msg_cb_on_recv_offline_new_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_offline_new_message) cb->on_recv_offline_new_message(message);
+}
+static void msg_cb_on_msg_deleted(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_msg_deleted) cb->on_msg_deleted(message);
+}
+static void msg_cb_on_recv_online_only_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_online_only_message) cb->on_recv_online_only_message(message);
+}
+
+// OnFriendshipListener wrappers
+static void friend_cb_on_application_added(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_added) cb->on_friend_application_added(friend_application);
+}
+static void friend_cb_on_application_deleted(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_deleted) cb->on_friend_application_deleted(friend_application);
+}
+static void friend_cb_on_application_accepted(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_accepted) cb->on_friend_application_accepted(friend_application);
+}
+static void friend_cb_on_application_rejected(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_rejected) cb->on_friend_application_rejected(friend_application);
+}
+static void friend_cb_on_friend_added(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_added) cb->on_friend_added(friend_info);
+}
+static void friend_cb_on_friend_deleted(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_deleted) cb->on_friend_deleted(friend_info);
+}
+static void friend_cb_on_friend_info_changed(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_info_changed) cb->on_friend_info_changed(friend_info);
+}
+static void friend_cb_on_black_added(friendship_listener_t* cb, const char* black_info) {
+    if (cb && cb->on_black_added) cb->on_black_added(black_info);
+}
+static void friend_cb_on_black_deleted(friendship_listener_t* cb, const char* black_info) {
+    if (cb && cb->on_black_deleted) cb->on_black_deleted(black_info);
+}
+
+// OnGroupListener wrappers
+static void group_cb_on_joined_group_added(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_joined_group_added) cb->on_joined_group_added(group_info);
+}
+static void group_cb_on_joined_group_deleted(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_joined_group_deleted) cb->on_joined_group_deleted(group_info);
+}
+static void group_cb_on_group_member_added(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_added) cb->on_group_member_added(group_member_info);
+}
+static void group_cb_on_group_member_deleted(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_deleted) cb->on_group_member_deleted(group_member_info);
+}
+static void group_cb_on_group_application_added(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_added) cb->on_group_application_added(group_application);
+}
+static void group_cb_on_group_application_deleted(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_deleted) cb->on_group_application_deleted(group_application);
+}
+static void group_cb_on_group_info_changed(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_group_info_changed) cb->on_group_info_changed(group_info);
+}
+static void group_cb_on_group_dismissed(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_group_dismissed) cb->on_group_dismissed(group_info);
+}
+static void group_cb_on_group_member_info_changed(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_info_changed) cb->on_group_member_info_changed(group_member_info);
+}
+static void group_cb_on_group_application_accepted(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_accepted) cb->on_group_application_accepted(group_application);
+}
+static void group_cb_on_group_application_rejected(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_rejected) cb->on_group_application_rejected(group_application);
+}
+
+// OnUserListener wrappers
+static void user_cb_on_self_info_updated(user_listener_t* cb, const char* user_info) {
+    if (cb && cb->on_self_info_updated) cb->on_self_info_updated(user_info);
+}
+static void user_cb_on_user_status_changed(user_listener_t* cb, const char* user_online_status) {
+    if (cb && cb->on_user_status_changed) cb->on_user_status_changed(user_online_status);
+}
+
+// OnCustomBusinessListener wrapper
+static void business_cb_on_recv(custom_business_listener_t* cb, const char* business_message) {
+    if (cb && cb->on_recv_custom_business_message) cb->on_recv_custom_business_message(business_message);
+}
+
+// OnMessageKvInfoListener wrapper
+static void msgkv_cb_on_changed(message_kv_info_listener_t* cb, const char* message_changed_list) {
+    if (cb && cb->on_message_kv_info_changed) cb->on_message_kv_info_changed(message_changed_list);
+}
+
+// UploadFileCallback wrappers
+static void upload_file_cb_open(upload_file_callback_t* cb, int64_t size) {
+    if (cb && cb->open) cb->open(size);
+}
+static void upload_file_cb_part_size(upload_file_callback_t* cb, int64_t part_size, int num) {
+    if (cb && cb->part_size) cb->part_size(part_size, num);
+}
+static void upload_file_cb_hash_part_progress(upload_file_callback_t* cb, int index, int64_t size, const char* part_hash) {
+    if (cb && cb->hash_part_progress) cb->hash_part_progress(index, size, part_hash);
+}
+static void upload_file_cb_hash_part_complete(upload_file_callback_t* cb, const char* parts_hash, const char* file_hash) {
+    if (cb && cb->hash_part_complete) cb->hash_part_complete(parts_hash, file_hash);
+}
+static void upload_file_cb_upload_id(upload_file_callback_t* cb, const char* upload_id) {
+    if (cb && cb->upload_id) cb->upload_id(upload_id);
+}
+static void upload_file_cb_upload_part_complete(upload_file_callback_t* cb, int index, int64_t part_size, const char* part_hash) {
+    if (cb && cb->upload_part_complete) cb->upload_part_complete(index, part_size, part_hash);
+}
+static void upload_file_cb_upload_complete(upload_file_callback_t* cb, int64_t file_size, int64_t stream_size, int64_t storage_size) {
+    if (cb && cb->upload_complete) cb->upload_complete(file_size, stream_size, storage_size);
+}
+static void upload_file_cb_complete(upload_file_callback_t* cb, int64_t size, const char* url, int typ) {
+    if (cb && cb->complete) cb->complete(size, url, typ);
+}
+
+// UploadLogProgress wrapper
+static void upload_log_cb_on_progress(upload_log_progress_t* cb, int64_t current, int64_t size) {
+    if (cb && cb->on_progress) cb->on_progress(current, size);
+}
+
+#endif // OPENIM_CALLBACK_TYPES_H
+
 
 #line 1 "cgo-generated-wrapper"
 
 #line 17 "listener_c.go"
 
-#include "callback_types.h"
+#ifndef OPENIM_CALLBACK_TYPES_H
+#define OPENIM_CALLBACK_TYPES_H
+
+#include <stdint.h>
+#include <stdlib.h>
+
+// ===================== C callback function pointer types =====================
+
+// Base callback
+typedef void (*on_success_t)(const char* data);
+typedef void (*on_error_t)(int32_t err_code, const char* err_msg);
+
+typedef struct {
+    on_success_t on_success;
+    on_error_t   on_error;
+} base_callback_t;
+
+// SendMsg callback (Base + progress)
+typedef void (*on_progress_t)(int progress);
+
+typedef struct {
+    on_success_t  on_success;
+    on_error_t    on_error;
+    on_progress_t on_progress;
+} send_msg_callback_t;
+
+// OnConnListener
+typedef void (*on_connecting_t)();
+typedef void (*on_connect_success_t)();
+typedef void (*on_connect_failed_t)(int32_t err_code, const char* err_msg);
+typedef void (*on_kicked_offline_t)();
+typedef void (*on_user_token_expired_t)();
+typedef void (*on_user_token_invalid_t)(const char* err_msg);
+
+typedef struct {
+    on_connecting_t         on_connecting;
+    on_connect_success_t    on_connect_success;
+    on_connect_failed_t     on_connect_failed;
+    on_kicked_offline_t     on_kicked_offline;
+    on_user_token_expired_t on_user_token_expired;
+    on_user_token_invalid_t on_user_token_invalid;
+} conn_listener_t;
+
+// OnConversationListener
+typedef void (*on_sync_server_start_t)(int reinstalled);
+typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_progress_t)(int progress);
+typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_new_conversation_t)(const char* conversation_list);
+typedef void (*on_conversation_changed_t)(const char* conversation_list);
+typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
+typedef void (*on_conversation_user_input_status_changed_t)(const char* change);
+
+typedef struct {
+    on_sync_server_start_t                      on_sync_server_start;
+    on_sync_server_finish_t                     on_sync_server_finish;
+    on_sync_server_progress_t                   on_sync_server_progress;
+    on_sync_server_failed_t                     on_sync_server_failed;
+    on_new_conversation_t                       on_new_conversation;
+    on_conversation_changed_t                   on_conversation_changed;
+    on_total_unread_count_changed_t             on_total_unread_count_changed;
+    on_conversation_user_input_status_changed_t on_conversation_user_input_status_changed;
+} conversation_listener_t;
+
+// OnAdvancedMsgListener
+typedef void (*on_recv_new_message_t)(const char* message);
+typedef void (*on_recv_c2c_read_receipt_t)(const char* msg_receipt_list);
+typedef void (*on_new_recv_message_revoked_t)(const char* message_revoked);
+typedef void (*on_recv_offline_new_message_t)(const char* message);
+typedef void (*on_msg_deleted_t)(const char* message);
+typedef void (*on_recv_online_only_message_t)(const char* message);
+
+typedef struct {
+    on_recv_new_message_t          on_recv_new_message;
+    on_recv_c2c_read_receipt_t     on_recv_c2c_read_receipt;
+    on_new_recv_message_revoked_t  on_new_recv_message_revoked;
+    on_recv_offline_new_message_t  on_recv_offline_new_message;
+    on_msg_deleted_t               on_msg_deleted;
+    on_recv_online_only_message_t  on_recv_online_only_message;
+} advanced_msg_listener_t;
+
+// OnFriendshipListener
+typedef void (*on_friend_application_added_t)(const char* friend_application);
+typedef void (*on_friend_application_deleted_t)(const char* friend_application);
+typedef void (*on_friend_application_accepted_t)(const char* friend_application);
+typedef void (*on_friend_application_rejected_t)(const char* friend_application);
+typedef void (*on_friend_added_t)(const char* friend_info);
+typedef void (*on_friend_deleted_t)(const char* friend_info);
+typedef void (*on_friend_info_changed_t)(const char* friend_info);
+typedef void (*on_black_added_t)(const char* black_info);
+typedef void (*on_black_deleted_t)(const char* black_info);
+
+typedef struct {
+    on_friend_application_added_t    on_friend_application_added;
+    on_friend_application_deleted_t  on_friend_application_deleted;
+    on_friend_application_accepted_t on_friend_application_accepted;
+    on_friend_application_rejected_t on_friend_application_rejected;
+    on_friend_added_t                on_friend_added;
+    on_friend_deleted_t              on_friend_deleted;
+    on_friend_info_changed_t         on_friend_info_changed;
+    on_black_added_t                 on_black_added;
+    on_black_deleted_t               on_black_deleted;
+} friendship_listener_t;
+
+// OnGroupListener
+typedef void (*on_joined_group_added_t)(const char* group_info);
+typedef void (*on_joined_group_deleted_t)(const char* group_info);
+typedef void (*on_group_member_added_t)(const char* group_member_info);
+typedef void (*on_group_member_deleted_t)(const char* group_member_info);
+typedef void (*on_group_application_added_t)(const char* group_application);
+typedef void (*on_group_application_deleted_t)(const char* group_application);
+typedef void (*on_group_info_changed_t)(const char* group_info);
+typedef void (*on_group_dismissed_t)(const char* group_info);
+typedef void (*on_group_member_info_changed_t)(const char* group_member_info);
+typedef void (*on_group_application_accepted_t)(const char* group_application);
+typedef void (*on_group_application_rejected_t)(const char* group_application);
+
+typedef struct {
+    on_joined_group_added_t           on_joined_group_added;
+    on_joined_group_deleted_t         on_joined_group_deleted;
+    on_group_member_added_t           on_group_member_added;
+    on_group_member_deleted_t         on_group_member_deleted;
+    on_group_application_added_t      on_group_application_added;
+    on_group_application_deleted_t    on_group_application_deleted;
+    on_group_info_changed_t           on_group_info_changed;
+    on_group_dismissed_t              on_group_dismissed;
+    on_group_member_info_changed_t    on_group_member_info_changed;
+    on_group_application_accepted_t   on_group_application_accepted;
+    on_group_application_rejected_t   on_group_application_rejected;
+} group_listener_t;
+
+// OnUserListener
+typedef void (*on_self_info_updated_t)(const char* user_info);
+typedef void (*on_user_status_changed_t)(const char* user_online_status);
+
+typedef struct {
+    on_self_info_updated_t     on_self_info_updated;
+    on_user_status_changed_t   on_user_status_changed;
+} user_listener_t;
+
+// OnCustomBusinessListener
+typedef void (*on_recv_custom_business_message_t)(const char* business_message);
+
+typedef struct {
+    on_recv_custom_business_message_t on_recv_custom_business_message;
+} custom_business_listener_t;
+
+// OnMessageKvInfoListener
+typedef void (*on_message_kv_info_changed_t)(const char* message_changed_list);
+
+typedef struct {
+    on_message_kv_info_changed_t on_message_kv_info_changed;
+} message_kv_info_listener_t;
+
+// UploadFileCallback
+typedef void (*upload_file_open_t)(int64_t size);
+typedef void (*upload_file_part_size_t)(int64_t part_size, int num);
+typedef void (*upload_file_hash_part_progress_t)(int index, int64_t size, const char* part_hash);
+typedef void (*upload_file_hash_part_complete_t)(const char* parts_hash, const char* file_hash);
+typedef void (*upload_file_upload_id_t)(const char* upload_id);
+typedef void (*upload_file_upload_part_complete_t)(int index, int64_t part_size, const char* part_hash);
+typedef void (*upload_file_upload_complete_t)(int64_t file_size, int64_t stream_size, int64_t storage_size);
+typedef void (*upload_file_complete_t)(int64_t size, const char* url, int typ);
+
+typedef struct {
+    upload_file_open_t                     open;
+    upload_file_part_size_t                part_size;
+    upload_file_hash_part_progress_t       hash_part_progress;
+    upload_file_hash_part_complete_t       hash_part_complete;
+    upload_file_upload_id_t                upload_id;
+    upload_file_upload_part_complete_t     upload_part_complete;
+    upload_file_upload_complete_t          upload_complete;
+    upload_file_complete_t                 complete;
+} upload_file_callback_t;
+
+// UploadLogProgress
+typedef void (*upload_log_progress_cb_t)(int64_t current, int64_t size);
+
+typedef struct {
+    upload_log_progress_cb_t on_progress;
+} upload_log_progress_t;
+
+// ===================== C wrapper functions (safe function pointer calls) =====================
+
+// Base callback wrappers
+static void base_cb_on_success(base_callback_t* cb, const char* data) {
+    if (cb && cb->on_success) cb->on_success(data);
+}
+static void base_cb_on_error(base_callback_t* cb, int32_t err_code, const char* err_msg) {
+    if (cb && cb->on_error) cb->on_error(err_code, err_msg);
+}
+
+// SendMsg callback wrappers
+static void send_msg_cb_on_progress(send_msg_callback_t* cb, int progress) {
+    if (cb && cb->on_progress) cb->on_progress(progress);
+}
+
+// OnConnListener wrappers
+static void conn_cb_on_connecting(conn_listener_t* cb) {
+    if (cb && cb->on_connecting) cb->on_connecting();
+}
+static void conn_cb_on_connect_success(conn_listener_t* cb) {
+    if (cb && cb->on_connect_success) cb->on_connect_success();
+}
+static void conn_cb_on_connect_failed(conn_listener_t* cb, int32_t err_code, const char* err_msg) {
+    if (cb && cb->on_connect_failed) cb->on_connect_failed(err_code, err_msg);
+}
+static void conn_cb_on_kicked_offline(conn_listener_t* cb) {
+    if (cb && cb->on_kicked_offline) cb->on_kicked_offline();
+}
+static void conn_cb_on_user_token_expired(conn_listener_t* cb) {
+    if (cb && cb->on_user_token_expired) cb->on_user_token_expired();
+}
+static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_msg) {
+    if (cb && cb->on_user_token_invalid) cb->on_user_token_invalid(err_msg);
+}
+
+// OnConversationListener wrappers
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
+}
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
+}
+static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
+    if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
+}
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
+}
+static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {
+    if (cb && cb->on_new_conversation) cb->on_new_conversation(conversation_list);
+}
+static void conv_cb_on_conversation_changed(conversation_listener_t* cb, const char* conversation_list) {
+    if (cb && cb->on_conversation_changed) cb->on_conversation_changed(conversation_list);
+}
+static void conv_cb_on_total_unread_count_changed(conversation_listener_t* cb, int32_t total_unread_count) {
+    if (cb && cb->on_total_unread_count_changed) cb->on_total_unread_count_changed(total_unread_count);
+}
+static void conv_cb_on_conversation_user_input_status_changed(conversation_listener_t* cb, const char* change) {
+    if (cb && cb->on_conversation_user_input_status_changed) cb->on_conversation_user_input_status_changed(change);
+}
+
+// OnAdvancedMsgListener wrappers
+static void msg_cb_on_recv_new_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_new_message) cb->on_recv_new_message(message);
+}
+static void msg_cb_on_recv_c2c_read_receipt(advanced_msg_listener_t* cb, const char* msg_receipt_list) {
+    if (cb && cb->on_recv_c2c_read_receipt) cb->on_recv_c2c_read_receipt(msg_receipt_list);
+}
+static void msg_cb_on_new_recv_message_revoked(advanced_msg_listener_t* cb, const char* message_revoked) {
+    if (cb && cb->on_new_recv_message_revoked) cb->on_new_recv_message_revoked(message_revoked);
+}
+static void msg_cb_on_recv_offline_new_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_offline_new_message) cb->on_recv_offline_new_message(message);
+}
+static void msg_cb_on_msg_deleted(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_msg_deleted) cb->on_msg_deleted(message);
+}
+static void msg_cb_on_recv_online_only_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_online_only_message) cb->on_recv_online_only_message(message);
+}
+
+// OnFriendshipListener wrappers
+static void friend_cb_on_application_added(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_added) cb->on_friend_application_added(friend_application);
+}
+static void friend_cb_on_application_deleted(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_deleted) cb->on_friend_application_deleted(friend_application);
+}
+static void friend_cb_on_application_accepted(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_accepted) cb->on_friend_application_accepted(friend_application);
+}
+static void friend_cb_on_application_rejected(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_rejected) cb->on_friend_application_rejected(friend_application);
+}
+static void friend_cb_on_friend_added(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_added) cb->on_friend_added(friend_info);
+}
+static void friend_cb_on_friend_deleted(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_deleted) cb->on_friend_deleted(friend_info);
+}
+static void friend_cb_on_friend_info_changed(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_info_changed) cb->on_friend_info_changed(friend_info);
+}
+static void friend_cb_on_black_added(friendship_listener_t* cb, const char* black_info) {
+    if (cb && cb->on_black_added) cb->on_black_added(black_info);
+}
+static void friend_cb_on_black_deleted(friendship_listener_t* cb, const char* black_info) {
+    if (cb && cb->on_black_deleted) cb->on_black_deleted(black_info);
+}
+
+// OnGroupListener wrappers
+static void group_cb_on_joined_group_added(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_joined_group_added) cb->on_joined_group_added(group_info);
+}
+static void group_cb_on_joined_group_deleted(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_joined_group_deleted) cb->on_joined_group_deleted(group_info);
+}
+static void group_cb_on_group_member_added(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_added) cb->on_group_member_added(group_member_info);
+}
+static void group_cb_on_group_member_deleted(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_deleted) cb->on_group_member_deleted(group_member_info);
+}
+static void group_cb_on_group_application_added(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_added) cb->on_group_application_added(group_application);
+}
+static void group_cb_on_group_application_deleted(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_deleted) cb->on_group_application_deleted(group_application);
+}
+static void group_cb_on_group_info_changed(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_group_info_changed) cb->on_group_info_changed(group_info);
+}
+static void group_cb_on_group_dismissed(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_group_dismissed) cb->on_group_dismissed(group_info);
+}
+static void group_cb_on_group_member_info_changed(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_info_changed) cb->on_group_member_info_changed(group_member_info);
+}
+static void group_cb_on_group_application_accepted(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_accepted) cb->on_group_application_accepted(group_application);
+}
+static void group_cb_on_group_application_rejected(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_rejected) cb->on_group_application_rejected(group_application);
+}
+
+// OnUserListener wrappers
+static void user_cb_on_self_info_updated(user_listener_t* cb, const char* user_info) {
+    if (cb && cb->on_self_info_updated) cb->on_self_info_updated(user_info);
+}
+static void user_cb_on_user_status_changed(user_listener_t* cb, const char* user_online_status) {
+    if (cb && cb->on_user_status_changed) cb->on_user_status_changed(user_online_status);
+}
+
+// OnCustomBusinessListener wrapper
+static void business_cb_on_recv(custom_business_listener_t* cb, const char* business_message) {
+    if (cb && cb->on_recv_custom_business_message) cb->on_recv_custom_business_message(business_message);
+}
+
+// OnMessageKvInfoListener wrapper
+static void msgkv_cb_on_changed(message_kv_info_listener_t* cb, const char* message_changed_list) {
+    if (cb && cb->on_message_kv_info_changed) cb->on_message_kv_info_changed(message_changed_list);
+}
+
+// UploadFileCallback wrappers
+static void upload_file_cb_open(upload_file_callback_t* cb, int64_t size) {
+    if (cb && cb->open) cb->open(size);
+}
+static void upload_file_cb_part_size(upload_file_callback_t* cb, int64_t part_size, int num) {
+    if (cb && cb->part_size) cb->part_size(part_size, num);
+}
+static void upload_file_cb_hash_part_progress(upload_file_callback_t* cb, int index, int64_t size, const char* part_hash) {
+    if (cb && cb->hash_part_progress) cb->hash_part_progress(index, size, part_hash);
+}
+static void upload_file_cb_hash_part_complete(upload_file_callback_t* cb, const char* parts_hash, const char* file_hash) {
+    if (cb && cb->hash_part_complete) cb->hash_part_complete(parts_hash, file_hash);
+}
+static void upload_file_cb_upload_id(upload_file_callback_t* cb, const char* upload_id) {
+    if (cb && cb->upload_id) cb->upload_id(upload_id);
+}
+static void upload_file_cb_upload_part_complete(upload_file_callback_t* cb, int index, int64_t part_size, const char* part_hash) {
+    if (cb && cb->upload_part_complete) cb->upload_part_complete(index, part_size, part_hash);
+}
+static void upload_file_cb_upload_complete(upload_file_callback_t* cb, int64_t file_size, int64_t stream_size, int64_t storage_size) {
+    if (cb && cb->upload_complete) cb->upload_complete(file_size, stream_size, storage_size);
+}
+static void upload_file_cb_complete(upload_file_callback_t* cb, int64_t size, const char* url, int typ) {
+    if (cb && cb->complete) cb->complete(size, url, typ);
+}
+
+// UploadLogProgress wrapper
+static void upload_log_cb_on_progress(upload_log_progress_t* cb, int64_t current, int64_t size) {
+    if (cb && cb->on_progress) cb->on_progress(current, size);
+}
+
+#endif // OPENIM_CALLBACK_TYPES_H
+
 
 #line 1 "cgo-generated-wrapper"
 
 #line 17 "online_c.go"
 
-#include "callback_types.h"
+#ifndef OPENIM_CALLBACK_TYPES_H
+#define OPENIM_CALLBACK_TYPES_H
+
+#include <stdint.h>
+#include <stdlib.h>
+
+// ===================== C callback function pointer types =====================
+
+// Base callback
+typedef void (*on_success_t)(const char* data);
+typedef void (*on_error_t)(int32_t err_code, const char* err_msg);
+
+typedef struct {
+    on_success_t on_success;
+    on_error_t   on_error;
+} base_callback_t;
+
+// SendMsg callback (Base + progress)
+typedef void (*on_progress_t)(int progress);
+
+typedef struct {
+    on_success_t  on_success;
+    on_error_t    on_error;
+    on_progress_t on_progress;
+} send_msg_callback_t;
+
+// OnConnListener
+typedef void (*on_connecting_t)();
+typedef void (*on_connect_success_t)();
+typedef void (*on_connect_failed_t)(int32_t err_code, const char* err_msg);
+typedef void (*on_kicked_offline_t)();
+typedef void (*on_user_token_expired_t)();
+typedef void (*on_user_token_invalid_t)(const char* err_msg);
+
+typedef struct {
+    on_connecting_t         on_connecting;
+    on_connect_success_t    on_connect_success;
+    on_connect_failed_t     on_connect_failed;
+    on_kicked_offline_t     on_kicked_offline;
+    on_user_token_expired_t on_user_token_expired;
+    on_user_token_invalid_t on_user_token_invalid;
+} conn_listener_t;
+
+// OnConversationListener
+typedef void (*on_sync_server_start_t)(int reinstalled);
+typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_progress_t)(int progress);
+typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_new_conversation_t)(const char* conversation_list);
+typedef void (*on_conversation_changed_t)(const char* conversation_list);
+typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
+typedef void (*on_conversation_user_input_status_changed_t)(const char* change);
+
+typedef struct {
+    on_sync_server_start_t                      on_sync_server_start;
+    on_sync_server_finish_t                     on_sync_server_finish;
+    on_sync_server_progress_t                   on_sync_server_progress;
+    on_sync_server_failed_t                     on_sync_server_failed;
+    on_new_conversation_t                       on_new_conversation;
+    on_conversation_changed_t                   on_conversation_changed;
+    on_total_unread_count_changed_t             on_total_unread_count_changed;
+    on_conversation_user_input_status_changed_t on_conversation_user_input_status_changed;
+} conversation_listener_t;
+
+// OnAdvancedMsgListener
+typedef void (*on_recv_new_message_t)(const char* message);
+typedef void (*on_recv_c2c_read_receipt_t)(const char* msg_receipt_list);
+typedef void (*on_new_recv_message_revoked_t)(const char* message_revoked);
+typedef void (*on_recv_offline_new_message_t)(const char* message);
+typedef void (*on_msg_deleted_t)(const char* message);
+typedef void (*on_recv_online_only_message_t)(const char* message);
+
+typedef struct {
+    on_recv_new_message_t          on_recv_new_message;
+    on_recv_c2c_read_receipt_t     on_recv_c2c_read_receipt;
+    on_new_recv_message_revoked_t  on_new_recv_message_revoked;
+    on_recv_offline_new_message_t  on_recv_offline_new_message;
+    on_msg_deleted_t               on_msg_deleted;
+    on_recv_online_only_message_t  on_recv_online_only_message;
+} advanced_msg_listener_t;
+
+// OnFriendshipListener
+typedef void (*on_friend_application_added_t)(const char* friend_application);
+typedef void (*on_friend_application_deleted_t)(const char* friend_application);
+typedef void (*on_friend_application_accepted_t)(const char* friend_application);
+typedef void (*on_friend_application_rejected_t)(const char* friend_application);
+typedef void (*on_friend_added_t)(const char* friend_info);
+typedef void (*on_friend_deleted_t)(const char* friend_info);
+typedef void (*on_friend_info_changed_t)(const char* friend_info);
+typedef void (*on_black_added_t)(const char* black_info);
+typedef void (*on_black_deleted_t)(const char* black_info);
+
+typedef struct {
+    on_friend_application_added_t    on_friend_application_added;
+    on_friend_application_deleted_t  on_friend_application_deleted;
+    on_friend_application_accepted_t on_friend_application_accepted;
+    on_friend_application_rejected_t on_friend_application_rejected;
+    on_friend_added_t                on_friend_added;
+    on_friend_deleted_t              on_friend_deleted;
+    on_friend_info_changed_t         on_friend_info_changed;
+    on_black_added_t                 on_black_added;
+    on_black_deleted_t               on_black_deleted;
+} friendship_listener_t;
+
+// OnGroupListener
+typedef void (*on_joined_group_added_t)(const char* group_info);
+typedef void (*on_joined_group_deleted_t)(const char* group_info);
+typedef void (*on_group_member_added_t)(const char* group_member_info);
+typedef void (*on_group_member_deleted_t)(const char* group_member_info);
+typedef void (*on_group_application_added_t)(const char* group_application);
+typedef void (*on_group_application_deleted_t)(const char* group_application);
+typedef void (*on_group_info_changed_t)(const char* group_info);
+typedef void (*on_group_dismissed_t)(const char* group_info);
+typedef void (*on_group_member_info_changed_t)(const char* group_member_info);
+typedef void (*on_group_application_accepted_t)(const char* group_application);
+typedef void (*on_group_application_rejected_t)(const char* group_application);
+
+typedef struct {
+    on_joined_group_added_t           on_joined_group_added;
+    on_joined_group_deleted_t         on_joined_group_deleted;
+    on_group_member_added_t           on_group_member_added;
+    on_group_member_deleted_t         on_group_member_deleted;
+    on_group_application_added_t      on_group_application_added;
+    on_group_application_deleted_t    on_group_application_deleted;
+    on_group_info_changed_t           on_group_info_changed;
+    on_group_dismissed_t              on_group_dismissed;
+    on_group_member_info_changed_t    on_group_member_info_changed;
+    on_group_application_accepted_t   on_group_application_accepted;
+    on_group_application_rejected_t   on_group_application_rejected;
+} group_listener_t;
+
+// OnUserListener
+typedef void (*on_self_info_updated_t)(const char* user_info);
+typedef void (*on_user_status_changed_t)(const char* user_online_status);
+
+typedef struct {
+    on_self_info_updated_t     on_self_info_updated;
+    on_user_status_changed_t   on_user_status_changed;
+} user_listener_t;
+
+// OnCustomBusinessListener
+typedef void (*on_recv_custom_business_message_t)(const char* business_message);
+
+typedef struct {
+    on_recv_custom_business_message_t on_recv_custom_business_message;
+} custom_business_listener_t;
+
+// OnMessageKvInfoListener
+typedef void (*on_message_kv_info_changed_t)(const char* message_changed_list);
+
+typedef struct {
+    on_message_kv_info_changed_t on_message_kv_info_changed;
+} message_kv_info_listener_t;
+
+// UploadFileCallback
+typedef void (*upload_file_open_t)(int64_t size);
+typedef void (*upload_file_part_size_t)(int64_t part_size, int num);
+typedef void (*upload_file_hash_part_progress_t)(int index, int64_t size, const char* part_hash);
+typedef void (*upload_file_hash_part_complete_t)(const char* parts_hash, const char* file_hash);
+typedef void (*upload_file_upload_id_t)(const char* upload_id);
+typedef void (*upload_file_upload_part_complete_t)(int index, int64_t part_size, const char* part_hash);
+typedef void (*upload_file_upload_complete_t)(int64_t file_size, int64_t stream_size, int64_t storage_size);
+typedef void (*upload_file_complete_t)(int64_t size, const char* url, int typ);
+
+typedef struct {
+    upload_file_open_t                     open;
+    upload_file_part_size_t                part_size;
+    upload_file_hash_part_progress_t       hash_part_progress;
+    upload_file_hash_part_complete_t       hash_part_complete;
+    upload_file_upload_id_t                upload_id;
+    upload_file_upload_part_complete_t     upload_part_complete;
+    upload_file_upload_complete_t          upload_complete;
+    upload_file_complete_t                 complete;
+} upload_file_callback_t;
+
+// UploadLogProgress
+typedef void (*upload_log_progress_cb_t)(int64_t current, int64_t size);
+
+typedef struct {
+    upload_log_progress_cb_t on_progress;
+} upload_log_progress_t;
+
+// ===================== C wrapper functions (safe function pointer calls) =====================
+
+// Base callback wrappers
+static void base_cb_on_success(base_callback_t* cb, const char* data) {
+    if (cb && cb->on_success) cb->on_success(data);
+}
+static void base_cb_on_error(base_callback_t* cb, int32_t err_code, const char* err_msg) {
+    if (cb && cb->on_error) cb->on_error(err_code, err_msg);
+}
+
+// SendMsg callback wrappers
+static void send_msg_cb_on_progress(send_msg_callback_t* cb, int progress) {
+    if (cb && cb->on_progress) cb->on_progress(progress);
+}
+
+// OnConnListener wrappers
+static void conn_cb_on_connecting(conn_listener_t* cb) {
+    if (cb && cb->on_connecting) cb->on_connecting();
+}
+static void conn_cb_on_connect_success(conn_listener_t* cb) {
+    if (cb && cb->on_connect_success) cb->on_connect_success();
+}
+static void conn_cb_on_connect_failed(conn_listener_t* cb, int32_t err_code, const char* err_msg) {
+    if (cb && cb->on_connect_failed) cb->on_connect_failed(err_code, err_msg);
+}
+static void conn_cb_on_kicked_offline(conn_listener_t* cb) {
+    if (cb && cb->on_kicked_offline) cb->on_kicked_offline();
+}
+static void conn_cb_on_user_token_expired(conn_listener_t* cb) {
+    if (cb && cb->on_user_token_expired) cb->on_user_token_expired();
+}
+static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_msg) {
+    if (cb && cb->on_user_token_invalid) cb->on_user_token_invalid(err_msg);
+}
+
+// OnConversationListener wrappers
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
+}
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
+}
+static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
+    if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
+}
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
+}
+static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {
+    if (cb && cb->on_new_conversation) cb->on_new_conversation(conversation_list);
+}
+static void conv_cb_on_conversation_changed(conversation_listener_t* cb, const char* conversation_list) {
+    if (cb && cb->on_conversation_changed) cb->on_conversation_changed(conversation_list);
+}
+static void conv_cb_on_total_unread_count_changed(conversation_listener_t* cb, int32_t total_unread_count) {
+    if (cb && cb->on_total_unread_count_changed) cb->on_total_unread_count_changed(total_unread_count);
+}
+static void conv_cb_on_conversation_user_input_status_changed(conversation_listener_t* cb, const char* change) {
+    if (cb && cb->on_conversation_user_input_status_changed) cb->on_conversation_user_input_status_changed(change);
+}
+
+// OnAdvancedMsgListener wrappers
+static void msg_cb_on_recv_new_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_new_message) cb->on_recv_new_message(message);
+}
+static void msg_cb_on_recv_c2c_read_receipt(advanced_msg_listener_t* cb, const char* msg_receipt_list) {
+    if (cb && cb->on_recv_c2c_read_receipt) cb->on_recv_c2c_read_receipt(msg_receipt_list);
+}
+static void msg_cb_on_new_recv_message_revoked(advanced_msg_listener_t* cb, const char* message_revoked) {
+    if (cb && cb->on_new_recv_message_revoked) cb->on_new_recv_message_revoked(message_revoked);
+}
+static void msg_cb_on_recv_offline_new_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_offline_new_message) cb->on_recv_offline_new_message(message);
+}
+static void msg_cb_on_msg_deleted(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_msg_deleted) cb->on_msg_deleted(message);
+}
+static void msg_cb_on_recv_online_only_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_online_only_message) cb->on_recv_online_only_message(message);
+}
+
+// OnFriendshipListener wrappers
+static void friend_cb_on_application_added(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_added) cb->on_friend_application_added(friend_application);
+}
+static void friend_cb_on_application_deleted(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_deleted) cb->on_friend_application_deleted(friend_application);
+}
+static void friend_cb_on_application_accepted(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_accepted) cb->on_friend_application_accepted(friend_application);
+}
+static void friend_cb_on_application_rejected(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_rejected) cb->on_friend_application_rejected(friend_application);
+}
+static void friend_cb_on_friend_added(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_added) cb->on_friend_added(friend_info);
+}
+static void friend_cb_on_friend_deleted(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_deleted) cb->on_friend_deleted(friend_info);
+}
+static void friend_cb_on_friend_info_changed(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_info_changed) cb->on_friend_info_changed(friend_info);
+}
+static void friend_cb_on_black_added(friendship_listener_t* cb, const char* black_info) {
+    if (cb && cb->on_black_added) cb->on_black_added(black_info);
+}
+static void friend_cb_on_black_deleted(friendship_listener_t* cb, const char* black_info) {
+    if (cb && cb->on_black_deleted) cb->on_black_deleted(black_info);
+}
+
+// OnGroupListener wrappers
+static void group_cb_on_joined_group_added(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_joined_group_added) cb->on_joined_group_added(group_info);
+}
+static void group_cb_on_joined_group_deleted(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_joined_group_deleted) cb->on_joined_group_deleted(group_info);
+}
+static void group_cb_on_group_member_added(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_added) cb->on_group_member_added(group_member_info);
+}
+static void group_cb_on_group_member_deleted(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_deleted) cb->on_group_member_deleted(group_member_info);
+}
+static void group_cb_on_group_application_added(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_added) cb->on_group_application_added(group_application);
+}
+static void group_cb_on_group_application_deleted(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_deleted) cb->on_group_application_deleted(group_application);
+}
+static void group_cb_on_group_info_changed(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_group_info_changed) cb->on_group_info_changed(group_info);
+}
+static void group_cb_on_group_dismissed(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_group_dismissed) cb->on_group_dismissed(group_info);
+}
+static void group_cb_on_group_member_info_changed(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_info_changed) cb->on_group_member_info_changed(group_member_info);
+}
+static void group_cb_on_group_application_accepted(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_accepted) cb->on_group_application_accepted(group_application);
+}
+static void group_cb_on_group_application_rejected(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_rejected) cb->on_group_application_rejected(group_application);
+}
+
+// OnUserListener wrappers
+static void user_cb_on_self_info_updated(user_listener_t* cb, const char* user_info) {
+    if (cb && cb->on_self_info_updated) cb->on_self_info_updated(user_info);
+}
+static void user_cb_on_user_status_changed(user_listener_t* cb, const char* user_online_status) {
+    if (cb && cb->on_user_status_changed) cb->on_user_status_changed(user_online_status);
+}
+
+// OnCustomBusinessListener wrapper
+static void business_cb_on_recv(custom_business_listener_t* cb, const char* business_message) {
+    if (cb && cb->on_recv_custom_business_message) cb->on_recv_custom_business_message(business_message);
+}
+
+// OnMessageKvInfoListener wrapper
+static void msgkv_cb_on_changed(message_kv_info_listener_t* cb, const char* message_changed_list) {
+    if (cb && cb->on_message_kv_info_changed) cb->on_message_kv_info_changed(message_changed_list);
+}
+
+// UploadFileCallback wrappers
+static void upload_file_cb_open(upload_file_callback_t* cb, int64_t size) {
+    if (cb && cb->open) cb->open(size);
+}
+static void upload_file_cb_part_size(upload_file_callback_t* cb, int64_t part_size, int num) {
+    if (cb && cb->part_size) cb->part_size(part_size, num);
+}
+static void upload_file_cb_hash_part_progress(upload_file_callback_t* cb, int index, int64_t size, const char* part_hash) {
+    if (cb && cb->hash_part_progress) cb->hash_part_progress(index, size, part_hash);
+}
+static void upload_file_cb_hash_part_complete(upload_file_callback_t* cb, const char* parts_hash, const char* file_hash) {
+    if (cb && cb->hash_part_complete) cb->hash_part_complete(parts_hash, file_hash);
+}
+static void upload_file_cb_upload_id(upload_file_callback_t* cb, const char* upload_id) {
+    if (cb && cb->upload_id) cb->upload_id(upload_id);
+}
+static void upload_file_cb_upload_part_complete(upload_file_callback_t* cb, int index, int64_t part_size, const char* part_hash) {
+    if (cb && cb->upload_part_complete) cb->upload_part_complete(index, part_size, part_hash);
+}
+static void upload_file_cb_upload_complete(upload_file_callback_t* cb, int64_t file_size, int64_t stream_size, int64_t storage_size) {
+    if (cb && cb->upload_complete) cb->upload_complete(file_size, stream_size, storage_size);
+}
+static void upload_file_cb_complete(upload_file_callback_t* cb, int64_t size, const char* url, int typ) {
+    if (cb && cb->complete) cb->complete(size, url, typ);
+}
+
+// UploadLogProgress wrapper
+static void upload_log_cb_on_progress(upload_log_progress_t* cb, int64_t current, int64_t size) {
+    if (cb && cb->on_progress) cb->on_progress(current, size);
+}
+
+#endif // OPENIM_CALLBACK_TYPES_H
+
 
 #line 1 "cgo-generated-wrapper"
 
 #line 17 "relation_c.go"
 
-#include "callback_types.h"
+#ifndef OPENIM_CALLBACK_TYPES_H
+#define OPENIM_CALLBACK_TYPES_H
+
+#include <stdint.h>
+#include <stdlib.h>
+
+// ===================== C callback function pointer types =====================
+
+// Base callback
+typedef void (*on_success_t)(const char* data);
+typedef void (*on_error_t)(int32_t err_code, const char* err_msg);
+
+typedef struct {
+    on_success_t on_success;
+    on_error_t   on_error;
+} base_callback_t;
+
+// SendMsg callback (Base + progress)
+typedef void (*on_progress_t)(int progress);
+
+typedef struct {
+    on_success_t  on_success;
+    on_error_t    on_error;
+    on_progress_t on_progress;
+} send_msg_callback_t;
+
+// OnConnListener
+typedef void (*on_connecting_t)();
+typedef void (*on_connect_success_t)();
+typedef void (*on_connect_failed_t)(int32_t err_code, const char* err_msg);
+typedef void (*on_kicked_offline_t)();
+typedef void (*on_user_token_expired_t)();
+typedef void (*on_user_token_invalid_t)(const char* err_msg);
+
+typedef struct {
+    on_connecting_t         on_connecting;
+    on_connect_success_t    on_connect_success;
+    on_connect_failed_t     on_connect_failed;
+    on_kicked_offline_t     on_kicked_offline;
+    on_user_token_expired_t on_user_token_expired;
+    on_user_token_invalid_t on_user_token_invalid;
+} conn_listener_t;
+
+// OnConversationListener
+typedef void (*on_sync_server_start_t)(int reinstalled);
+typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_progress_t)(int progress);
+typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_new_conversation_t)(const char* conversation_list);
+typedef void (*on_conversation_changed_t)(const char* conversation_list);
+typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
+typedef void (*on_conversation_user_input_status_changed_t)(const char* change);
+
+typedef struct {
+    on_sync_server_start_t                      on_sync_server_start;
+    on_sync_server_finish_t                     on_sync_server_finish;
+    on_sync_server_progress_t                   on_sync_server_progress;
+    on_sync_server_failed_t                     on_sync_server_failed;
+    on_new_conversation_t                       on_new_conversation;
+    on_conversation_changed_t                   on_conversation_changed;
+    on_total_unread_count_changed_t             on_total_unread_count_changed;
+    on_conversation_user_input_status_changed_t on_conversation_user_input_status_changed;
+} conversation_listener_t;
+
+// OnAdvancedMsgListener
+typedef void (*on_recv_new_message_t)(const char* message);
+typedef void (*on_recv_c2c_read_receipt_t)(const char* msg_receipt_list);
+typedef void (*on_new_recv_message_revoked_t)(const char* message_revoked);
+typedef void (*on_recv_offline_new_message_t)(const char* message);
+typedef void (*on_msg_deleted_t)(const char* message);
+typedef void (*on_recv_online_only_message_t)(const char* message);
+
+typedef struct {
+    on_recv_new_message_t          on_recv_new_message;
+    on_recv_c2c_read_receipt_t     on_recv_c2c_read_receipt;
+    on_new_recv_message_revoked_t  on_new_recv_message_revoked;
+    on_recv_offline_new_message_t  on_recv_offline_new_message;
+    on_msg_deleted_t               on_msg_deleted;
+    on_recv_online_only_message_t  on_recv_online_only_message;
+} advanced_msg_listener_t;
+
+// OnFriendshipListener
+typedef void (*on_friend_application_added_t)(const char* friend_application);
+typedef void (*on_friend_application_deleted_t)(const char* friend_application);
+typedef void (*on_friend_application_accepted_t)(const char* friend_application);
+typedef void (*on_friend_application_rejected_t)(const char* friend_application);
+typedef void (*on_friend_added_t)(const char* friend_info);
+typedef void (*on_friend_deleted_t)(const char* friend_info);
+typedef void (*on_friend_info_changed_t)(const char* friend_info);
+typedef void (*on_black_added_t)(const char* black_info);
+typedef void (*on_black_deleted_t)(const char* black_info);
+
+typedef struct {
+    on_friend_application_added_t    on_friend_application_added;
+    on_friend_application_deleted_t  on_friend_application_deleted;
+    on_friend_application_accepted_t on_friend_application_accepted;
+    on_friend_application_rejected_t on_friend_application_rejected;
+    on_friend_added_t                on_friend_added;
+    on_friend_deleted_t              on_friend_deleted;
+    on_friend_info_changed_t         on_friend_info_changed;
+    on_black_added_t                 on_black_added;
+    on_black_deleted_t               on_black_deleted;
+} friendship_listener_t;
+
+// OnGroupListener
+typedef void (*on_joined_group_added_t)(const char* group_info);
+typedef void (*on_joined_group_deleted_t)(const char* group_info);
+typedef void (*on_group_member_added_t)(const char* group_member_info);
+typedef void (*on_group_member_deleted_t)(const char* group_member_info);
+typedef void (*on_group_application_added_t)(const char* group_application);
+typedef void (*on_group_application_deleted_t)(const char* group_application);
+typedef void (*on_group_info_changed_t)(const char* group_info);
+typedef void (*on_group_dismissed_t)(const char* group_info);
+typedef void (*on_group_member_info_changed_t)(const char* group_member_info);
+typedef void (*on_group_application_accepted_t)(const char* group_application);
+typedef void (*on_group_application_rejected_t)(const char* group_application);
+
+typedef struct {
+    on_joined_group_added_t           on_joined_group_added;
+    on_joined_group_deleted_t         on_joined_group_deleted;
+    on_group_member_added_t           on_group_member_added;
+    on_group_member_deleted_t         on_group_member_deleted;
+    on_group_application_added_t      on_group_application_added;
+    on_group_application_deleted_t    on_group_application_deleted;
+    on_group_info_changed_t           on_group_info_changed;
+    on_group_dismissed_t              on_group_dismissed;
+    on_group_member_info_changed_t    on_group_member_info_changed;
+    on_group_application_accepted_t   on_group_application_accepted;
+    on_group_application_rejected_t   on_group_application_rejected;
+} group_listener_t;
+
+// OnUserListener
+typedef void (*on_self_info_updated_t)(const char* user_info);
+typedef void (*on_user_status_changed_t)(const char* user_online_status);
+
+typedef struct {
+    on_self_info_updated_t     on_self_info_updated;
+    on_user_status_changed_t   on_user_status_changed;
+} user_listener_t;
+
+// OnCustomBusinessListener
+typedef void (*on_recv_custom_business_message_t)(const char* business_message);
+
+typedef struct {
+    on_recv_custom_business_message_t on_recv_custom_business_message;
+} custom_business_listener_t;
+
+// OnMessageKvInfoListener
+typedef void (*on_message_kv_info_changed_t)(const char* message_changed_list);
+
+typedef struct {
+    on_message_kv_info_changed_t on_message_kv_info_changed;
+} message_kv_info_listener_t;
+
+// UploadFileCallback
+typedef void (*upload_file_open_t)(int64_t size);
+typedef void (*upload_file_part_size_t)(int64_t part_size, int num);
+typedef void (*upload_file_hash_part_progress_t)(int index, int64_t size, const char* part_hash);
+typedef void (*upload_file_hash_part_complete_t)(const char* parts_hash, const char* file_hash);
+typedef void (*upload_file_upload_id_t)(const char* upload_id);
+typedef void (*upload_file_upload_part_complete_t)(int index, int64_t part_size, const char* part_hash);
+typedef void (*upload_file_upload_complete_t)(int64_t file_size, int64_t stream_size, int64_t storage_size);
+typedef void (*upload_file_complete_t)(int64_t size, const char* url, int typ);
+
+typedef struct {
+    upload_file_open_t                     open;
+    upload_file_part_size_t                part_size;
+    upload_file_hash_part_progress_t       hash_part_progress;
+    upload_file_hash_part_complete_t       hash_part_complete;
+    upload_file_upload_id_t                upload_id;
+    upload_file_upload_part_complete_t     upload_part_complete;
+    upload_file_upload_complete_t          upload_complete;
+    upload_file_complete_t                 complete;
+} upload_file_callback_t;
+
+// UploadLogProgress
+typedef void (*upload_log_progress_cb_t)(int64_t current, int64_t size);
+
+typedef struct {
+    upload_log_progress_cb_t on_progress;
+} upload_log_progress_t;
+
+// ===================== C wrapper functions (safe function pointer calls) =====================
+
+// Base callback wrappers
+static void base_cb_on_success(base_callback_t* cb, const char* data) {
+    if (cb && cb->on_success) cb->on_success(data);
+}
+static void base_cb_on_error(base_callback_t* cb, int32_t err_code, const char* err_msg) {
+    if (cb && cb->on_error) cb->on_error(err_code, err_msg);
+}
+
+// SendMsg callback wrappers
+static void send_msg_cb_on_progress(send_msg_callback_t* cb, int progress) {
+    if (cb && cb->on_progress) cb->on_progress(progress);
+}
+
+// OnConnListener wrappers
+static void conn_cb_on_connecting(conn_listener_t* cb) {
+    if (cb && cb->on_connecting) cb->on_connecting();
+}
+static void conn_cb_on_connect_success(conn_listener_t* cb) {
+    if (cb && cb->on_connect_success) cb->on_connect_success();
+}
+static void conn_cb_on_connect_failed(conn_listener_t* cb, int32_t err_code, const char* err_msg) {
+    if (cb && cb->on_connect_failed) cb->on_connect_failed(err_code, err_msg);
+}
+static void conn_cb_on_kicked_offline(conn_listener_t* cb) {
+    if (cb && cb->on_kicked_offline) cb->on_kicked_offline();
+}
+static void conn_cb_on_user_token_expired(conn_listener_t* cb) {
+    if (cb && cb->on_user_token_expired) cb->on_user_token_expired();
+}
+static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_msg) {
+    if (cb && cb->on_user_token_invalid) cb->on_user_token_invalid(err_msg);
+}
+
+// OnConversationListener wrappers
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
+}
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
+}
+static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
+    if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
+}
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
+}
+static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {
+    if (cb && cb->on_new_conversation) cb->on_new_conversation(conversation_list);
+}
+static void conv_cb_on_conversation_changed(conversation_listener_t* cb, const char* conversation_list) {
+    if (cb && cb->on_conversation_changed) cb->on_conversation_changed(conversation_list);
+}
+static void conv_cb_on_total_unread_count_changed(conversation_listener_t* cb, int32_t total_unread_count) {
+    if (cb && cb->on_total_unread_count_changed) cb->on_total_unread_count_changed(total_unread_count);
+}
+static void conv_cb_on_conversation_user_input_status_changed(conversation_listener_t* cb, const char* change) {
+    if (cb && cb->on_conversation_user_input_status_changed) cb->on_conversation_user_input_status_changed(change);
+}
+
+// OnAdvancedMsgListener wrappers
+static void msg_cb_on_recv_new_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_new_message) cb->on_recv_new_message(message);
+}
+static void msg_cb_on_recv_c2c_read_receipt(advanced_msg_listener_t* cb, const char* msg_receipt_list) {
+    if (cb && cb->on_recv_c2c_read_receipt) cb->on_recv_c2c_read_receipt(msg_receipt_list);
+}
+static void msg_cb_on_new_recv_message_revoked(advanced_msg_listener_t* cb, const char* message_revoked) {
+    if (cb && cb->on_new_recv_message_revoked) cb->on_new_recv_message_revoked(message_revoked);
+}
+static void msg_cb_on_recv_offline_new_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_offline_new_message) cb->on_recv_offline_new_message(message);
+}
+static void msg_cb_on_msg_deleted(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_msg_deleted) cb->on_msg_deleted(message);
+}
+static void msg_cb_on_recv_online_only_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_online_only_message) cb->on_recv_online_only_message(message);
+}
+
+// OnFriendshipListener wrappers
+static void friend_cb_on_application_added(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_added) cb->on_friend_application_added(friend_application);
+}
+static void friend_cb_on_application_deleted(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_deleted) cb->on_friend_application_deleted(friend_application);
+}
+static void friend_cb_on_application_accepted(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_accepted) cb->on_friend_application_accepted(friend_application);
+}
+static void friend_cb_on_application_rejected(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_rejected) cb->on_friend_application_rejected(friend_application);
+}
+static void friend_cb_on_friend_added(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_added) cb->on_friend_added(friend_info);
+}
+static void friend_cb_on_friend_deleted(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_deleted) cb->on_friend_deleted(friend_info);
+}
+static void friend_cb_on_friend_info_changed(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_info_changed) cb->on_friend_info_changed(friend_info);
+}
+static void friend_cb_on_black_added(friendship_listener_t* cb, const char* black_info) {
+    if (cb && cb->on_black_added) cb->on_black_added(black_info);
+}
+static void friend_cb_on_black_deleted(friendship_listener_t* cb, const char* black_info) {
+    if (cb && cb->on_black_deleted) cb->on_black_deleted(black_info);
+}
+
+// OnGroupListener wrappers
+static void group_cb_on_joined_group_added(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_joined_group_added) cb->on_joined_group_added(group_info);
+}
+static void group_cb_on_joined_group_deleted(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_joined_group_deleted) cb->on_joined_group_deleted(group_info);
+}
+static void group_cb_on_group_member_added(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_added) cb->on_group_member_added(group_member_info);
+}
+static void group_cb_on_group_member_deleted(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_deleted) cb->on_group_member_deleted(group_member_info);
+}
+static void group_cb_on_group_application_added(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_added) cb->on_group_application_added(group_application);
+}
+static void group_cb_on_group_application_deleted(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_deleted) cb->on_group_application_deleted(group_application);
+}
+static void group_cb_on_group_info_changed(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_group_info_changed) cb->on_group_info_changed(group_info);
+}
+static void group_cb_on_group_dismissed(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_group_dismissed) cb->on_group_dismissed(group_info);
+}
+static void group_cb_on_group_member_info_changed(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_info_changed) cb->on_group_member_info_changed(group_member_info);
+}
+static void group_cb_on_group_application_accepted(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_accepted) cb->on_group_application_accepted(group_application);
+}
+static void group_cb_on_group_application_rejected(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_rejected) cb->on_group_application_rejected(group_application);
+}
+
+// OnUserListener wrappers
+static void user_cb_on_self_info_updated(user_listener_t* cb, const char* user_info) {
+    if (cb && cb->on_self_info_updated) cb->on_self_info_updated(user_info);
+}
+static void user_cb_on_user_status_changed(user_listener_t* cb, const char* user_online_status) {
+    if (cb && cb->on_user_status_changed) cb->on_user_status_changed(user_online_status);
+}
+
+// OnCustomBusinessListener wrapper
+static void business_cb_on_recv(custom_business_listener_t* cb, const char* business_message) {
+    if (cb && cb->on_recv_custom_business_message) cb->on_recv_custom_business_message(business_message);
+}
+
+// OnMessageKvInfoListener wrapper
+static void msgkv_cb_on_changed(message_kv_info_listener_t* cb, const char* message_changed_list) {
+    if (cb && cb->on_message_kv_info_changed) cb->on_message_kv_info_changed(message_changed_list);
+}
+
+// UploadFileCallback wrappers
+static void upload_file_cb_open(upload_file_callback_t* cb, int64_t size) {
+    if (cb && cb->open) cb->open(size);
+}
+static void upload_file_cb_part_size(upload_file_callback_t* cb, int64_t part_size, int num) {
+    if (cb && cb->part_size) cb->part_size(part_size, num);
+}
+static void upload_file_cb_hash_part_progress(upload_file_callback_t* cb, int index, int64_t size, const char* part_hash) {
+    if (cb && cb->hash_part_progress) cb->hash_part_progress(index, size, part_hash);
+}
+static void upload_file_cb_hash_part_complete(upload_file_callback_t* cb, const char* parts_hash, const char* file_hash) {
+    if (cb && cb->hash_part_complete) cb->hash_part_complete(parts_hash, file_hash);
+}
+static void upload_file_cb_upload_id(upload_file_callback_t* cb, const char* upload_id) {
+    if (cb && cb->upload_id) cb->upload_id(upload_id);
+}
+static void upload_file_cb_upload_part_complete(upload_file_callback_t* cb, int index, int64_t part_size, const char* part_hash) {
+    if (cb && cb->upload_part_complete) cb->upload_part_complete(index, part_size, part_hash);
+}
+static void upload_file_cb_upload_complete(upload_file_callback_t* cb, int64_t file_size, int64_t stream_size, int64_t storage_size) {
+    if (cb && cb->upload_complete) cb->upload_complete(file_size, stream_size, storage_size);
+}
+static void upload_file_cb_complete(upload_file_callback_t* cb, int64_t size, const char* url, int typ) {
+    if (cb && cb->complete) cb->complete(size, url, typ);
+}
+
+// UploadLogProgress wrapper
+static void upload_log_cb_on_progress(upload_log_progress_t* cb, int64_t current, int64_t size) {
+    if (cb && cb->on_progress) cb->on_progress(current, size);
+}
+
+#endif // OPENIM_CALLBACK_TYPES_H
+
 
 #line 1 "cgo-generated-wrapper"
 
 #line 17 "third_c.go"
 
-#include "callback_types.h"
+#ifndef OPENIM_CALLBACK_TYPES_H
+#define OPENIM_CALLBACK_TYPES_H
+
+#include <stdint.h>
+#include <stdlib.h>
+
+// ===================== C callback function pointer types =====================
+
+// Base callback
+typedef void (*on_success_t)(const char* data);
+typedef void (*on_error_t)(int32_t err_code, const char* err_msg);
+
+typedef struct {
+    on_success_t on_success;
+    on_error_t   on_error;
+} base_callback_t;
+
+// SendMsg callback (Base + progress)
+typedef void (*on_progress_t)(int progress);
+
+typedef struct {
+    on_success_t  on_success;
+    on_error_t    on_error;
+    on_progress_t on_progress;
+} send_msg_callback_t;
+
+// OnConnListener
+typedef void (*on_connecting_t)();
+typedef void (*on_connect_success_t)();
+typedef void (*on_connect_failed_t)(int32_t err_code, const char* err_msg);
+typedef void (*on_kicked_offline_t)();
+typedef void (*on_user_token_expired_t)();
+typedef void (*on_user_token_invalid_t)(const char* err_msg);
+
+typedef struct {
+    on_connecting_t         on_connecting;
+    on_connect_success_t    on_connect_success;
+    on_connect_failed_t     on_connect_failed;
+    on_kicked_offline_t     on_kicked_offline;
+    on_user_token_expired_t on_user_token_expired;
+    on_user_token_invalid_t on_user_token_invalid;
+} conn_listener_t;
+
+// OnConversationListener
+typedef void (*on_sync_server_start_t)(int reinstalled);
+typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_progress_t)(int progress);
+typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_new_conversation_t)(const char* conversation_list);
+typedef void (*on_conversation_changed_t)(const char* conversation_list);
+typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
+typedef void (*on_conversation_user_input_status_changed_t)(const char* change);
+
+typedef struct {
+    on_sync_server_start_t                      on_sync_server_start;
+    on_sync_server_finish_t                     on_sync_server_finish;
+    on_sync_server_progress_t                   on_sync_server_progress;
+    on_sync_server_failed_t                     on_sync_server_failed;
+    on_new_conversation_t                       on_new_conversation;
+    on_conversation_changed_t                   on_conversation_changed;
+    on_total_unread_count_changed_t             on_total_unread_count_changed;
+    on_conversation_user_input_status_changed_t on_conversation_user_input_status_changed;
+} conversation_listener_t;
+
+// OnAdvancedMsgListener
+typedef void (*on_recv_new_message_t)(const char* message);
+typedef void (*on_recv_c2c_read_receipt_t)(const char* msg_receipt_list);
+typedef void (*on_new_recv_message_revoked_t)(const char* message_revoked);
+typedef void (*on_recv_offline_new_message_t)(const char* message);
+typedef void (*on_msg_deleted_t)(const char* message);
+typedef void (*on_recv_online_only_message_t)(const char* message);
+
+typedef struct {
+    on_recv_new_message_t          on_recv_new_message;
+    on_recv_c2c_read_receipt_t     on_recv_c2c_read_receipt;
+    on_new_recv_message_revoked_t  on_new_recv_message_revoked;
+    on_recv_offline_new_message_t  on_recv_offline_new_message;
+    on_msg_deleted_t               on_msg_deleted;
+    on_recv_online_only_message_t  on_recv_online_only_message;
+} advanced_msg_listener_t;
+
+// OnFriendshipListener
+typedef void (*on_friend_application_added_t)(const char* friend_application);
+typedef void (*on_friend_application_deleted_t)(const char* friend_application);
+typedef void (*on_friend_application_accepted_t)(const char* friend_application);
+typedef void (*on_friend_application_rejected_t)(const char* friend_application);
+typedef void (*on_friend_added_t)(const char* friend_info);
+typedef void (*on_friend_deleted_t)(const char* friend_info);
+typedef void (*on_friend_info_changed_t)(const char* friend_info);
+typedef void (*on_black_added_t)(const char* black_info);
+typedef void (*on_black_deleted_t)(const char* black_info);
+
+typedef struct {
+    on_friend_application_added_t    on_friend_application_added;
+    on_friend_application_deleted_t  on_friend_application_deleted;
+    on_friend_application_accepted_t on_friend_application_accepted;
+    on_friend_application_rejected_t on_friend_application_rejected;
+    on_friend_added_t                on_friend_added;
+    on_friend_deleted_t              on_friend_deleted;
+    on_friend_info_changed_t         on_friend_info_changed;
+    on_black_added_t                 on_black_added;
+    on_black_deleted_t               on_black_deleted;
+} friendship_listener_t;
+
+// OnGroupListener
+typedef void (*on_joined_group_added_t)(const char* group_info);
+typedef void (*on_joined_group_deleted_t)(const char* group_info);
+typedef void (*on_group_member_added_t)(const char* group_member_info);
+typedef void (*on_group_member_deleted_t)(const char* group_member_info);
+typedef void (*on_group_application_added_t)(const char* group_application);
+typedef void (*on_group_application_deleted_t)(const char* group_application);
+typedef void (*on_group_info_changed_t)(const char* group_info);
+typedef void (*on_group_dismissed_t)(const char* group_info);
+typedef void (*on_group_member_info_changed_t)(const char* group_member_info);
+typedef void (*on_group_application_accepted_t)(const char* group_application);
+typedef void (*on_group_application_rejected_t)(const char* group_application);
+
+typedef struct {
+    on_joined_group_added_t           on_joined_group_added;
+    on_joined_group_deleted_t         on_joined_group_deleted;
+    on_group_member_added_t           on_group_member_added;
+    on_group_member_deleted_t         on_group_member_deleted;
+    on_group_application_added_t      on_group_application_added;
+    on_group_application_deleted_t    on_group_application_deleted;
+    on_group_info_changed_t           on_group_info_changed;
+    on_group_dismissed_t              on_group_dismissed;
+    on_group_member_info_changed_t    on_group_member_info_changed;
+    on_group_application_accepted_t   on_group_application_accepted;
+    on_group_application_rejected_t   on_group_application_rejected;
+} group_listener_t;
+
+// OnUserListener
+typedef void (*on_self_info_updated_t)(const char* user_info);
+typedef void (*on_user_status_changed_t)(const char* user_online_status);
+
+typedef struct {
+    on_self_info_updated_t     on_self_info_updated;
+    on_user_status_changed_t   on_user_status_changed;
+} user_listener_t;
+
+// OnCustomBusinessListener
+typedef void (*on_recv_custom_business_message_t)(const char* business_message);
+
+typedef struct {
+    on_recv_custom_business_message_t on_recv_custom_business_message;
+} custom_business_listener_t;
+
+// OnMessageKvInfoListener
+typedef void (*on_message_kv_info_changed_t)(const char* message_changed_list);
+
+typedef struct {
+    on_message_kv_info_changed_t on_message_kv_info_changed;
+} message_kv_info_listener_t;
+
+// UploadFileCallback
+typedef void (*upload_file_open_t)(int64_t size);
+typedef void (*upload_file_part_size_t)(int64_t part_size, int num);
+typedef void (*upload_file_hash_part_progress_t)(int index, int64_t size, const char* part_hash);
+typedef void (*upload_file_hash_part_complete_t)(const char* parts_hash, const char* file_hash);
+typedef void (*upload_file_upload_id_t)(const char* upload_id);
+typedef void (*upload_file_upload_part_complete_t)(int index, int64_t part_size, const char* part_hash);
+typedef void (*upload_file_upload_complete_t)(int64_t file_size, int64_t stream_size, int64_t storage_size);
+typedef void (*upload_file_complete_t)(int64_t size, const char* url, int typ);
+
+typedef struct {
+    upload_file_open_t                     open;
+    upload_file_part_size_t                part_size;
+    upload_file_hash_part_progress_t       hash_part_progress;
+    upload_file_hash_part_complete_t       hash_part_complete;
+    upload_file_upload_id_t                upload_id;
+    upload_file_upload_part_complete_t     upload_part_complete;
+    upload_file_upload_complete_t          upload_complete;
+    upload_file_complete_t                 complete;
+} upload_file_callback_t;
+
+// UploadLogProgress
+typedef void (*upload_log_progress_cb_t)(int64_t current, int64_t size);
+
+typedef struct {
+    upload_log_progress_cb_t on_progress;
+} upload_log_progress_t;
+
+// ===================== C wrapper functions (safe function pointer calls) =====================
+
+// Base callback wrappers
+static void base_cb_on_success(base_callback_t* cb, const char* data) {
+    if (cb && cb->on_success) cb->on_success(data);
+}
+static void base_cb_on_error(base_callback_t* cb, int32_t err_code, const char* err_msg) {
+    if (cb && cb->on_error) cb->on_error(err_code, err_msg);
+}
+
+// SendMsg callback wrappers
+static void send_msg_cb_on_progress(send_msg_callback_t* cb, int progress) {
+    if (cb && cb->on_progress) cb->on_progress(progress);
+}
+
+// OnConnListener wrappers
+static void conn_cb_on_connecting(conn_listener_t* cb) {
+    if (cb && cb->on_connecting) cb->on_connecting();
+}
+static void conn_cb_on_connect_success(conn_listener_t* cb) {
+    if (cb && cb->on_connect_success) cb->on_connect_success();
+}
+static void conn_cb_on_connect_failed(conn_listener_t* cb, int32_t err_code, const char* err_msg) {
+    if (cb && cb->on_connect_failed) cb->on_connect_failed(err_code, err_msg);
+}
+static void conn_cb_on_kicked_offline(conn_listener_t* cb) {
+    if (cb && cb->on_kicked_offline) cb->on_kicked_offline();
+}
+static void conn_cb_on_user_token_expired(conn_listener_t* cb) {
+    if (cb && cb->on_user_token_expired) cb->on_user_token_expired();
+}
+static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_msg) {
+    if (cb && cb->on_user_token_invalid) cb->on_user_token_invalid(err_msg);
+}
+
+// OnConversationListener wrappers
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
+}
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
+}
+static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
+    if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
+}
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
+}
+static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {
+    if (cb && cb->on_new_conversation) cb->on_new_conversation(conversation_list);
+}
+static void conv_cb_on_conversation_changed(conversation_listener_t* cb, const char* conversation_list) {
+    if (cb && cb->on_conversation_changed) cb->on_conversation_changed(conversation_list);
+}
+static void conv_cb_on_total_unread_count_changed(conversation_listener_t* cb, int32_t total_unread_count) {
+    if (cb && cb->on_total_unread_count_changed) cb->on_total_unread_count_changed(total_unread_count);
+}
+static void conv_cb_on_conversation_user_input_status_changed(conversation_listener_t* cb, const char* change) {
+    if (cb && cb->on_conversation_user_input_status_changed) cb->on_conversation_user_input_status_changed(change);
+}
+
+// OnAdvancedMsgListener wrappers
+static void msg_cb_on_recv_new_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_new_message) cb->on_recv_new_message(message);
+}
+static void msg_cb_on_recv_c2c_read_receipt(advanced_msg_listener_t* cb, const char* msg_receipt_list) {
+    if (cb && cb->on_recv_c2c_read_receipt) cb->on_recv_c2c_read_receipt(msg_receipt_list);
+}
+static void msg_cb_on_new_recv_message_revoked(advanced_msg_listener_t* cb, const char* message_revoked) {
+    if (cb && cb->on_new_recv_message_revoked) cb->on_new_recv_message_revoked(message_revoked);
+}
+static void msg_cb_on_recv_offline_new_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_offline_new_message) cb->on_recv_offline_new_message(message);
+}
+static void msg_cb_on_msg_deleted(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_msg_deleted) cb->on_msg_deleted(message);
+}
+static void msg_cb_on_recv_online_only_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_online_only_message) cb->on_recv_online_only_message(message);
+}
+
+// OnFriendshipListener wrappers
+static void friend_cb_on_application_added(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_added) cb->on_friend_application_added(friend_application);
+}
+static void friend_cb_on_application_deleted(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_deleted) cb->on_friend_application_deleted(friend_application);
+}
+static void friend_cb_on_application_accepted(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_accepted) cb->on_friend_application_accepted(friend_application);
+}
+static void friend_cb_on_application_rejected(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_rejected) cb->on_friend_application_rejected(friend_application);
+}
+static void friend_cb_on_friend_added(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_added) cb->on_friend_added(friend_info);
+}
+static void friend_cb_on_friend_deleted(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_deleted) cb->on_friend_deleted(friend_info);
+}
+static void friend_cb_on_friend_info_changed(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_info_changed) cb->on_friend_info_changed(friend_info);
+}
+static void friend_cb_on_black_added(friendship_listener_t* cb, const char* black_info) {
+    if (cb && cb->on_black_added) cb->on_black_added(black_info);
+}
+static void friend_cb_on_black_deleted(friendship_listener_t* cb, const char* black_info) {
+    if (cb && cb->on_black_deleted) cb->on_black_deleted(black_info);
+}
+
+// OnGroupListener wrappers
+static void group_cb_on_joined_group_added(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_joined_group_added) cb->on_joined_group_added(group_info);
+}
+static void group_cb_on_joined_group_deleted(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_joined_group_deleted) cb->on_joined_group_deleted(group_info);
+}
+static void group_cb_on_group_member_added(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_added) cb->on_group_member_added(group_member_info);
+}
+static void group_cb_on_group_member_deleted(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_deleted) cb->on_group_member_deleted(group_member_info);
+}
+static void group_cb_on_group_application_added(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_added) cb->on_group_application_added(group_application);
+}
+static void group_cb_on_group_application_deleted(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_deleted) cb->on_group_application_deleted(group_application);
+}
+static void group_cb_on_group_info_changed(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_group_info_changed) cb->on_group_info_changed(group_info);
+}
+static void group_cb_on_group_dismissed(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_group_dismissed) cb->on_group_dismissed(group_info);
+}
+static void group_cb_on_group_member_info_changed(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_info_changed) cb->on_group_member_info_changed(group_member_info);
+}
+static void group_cb_on_group_application_accepted(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_accepted) cb->on_group_application_accepted(group_application);
+}
+static void group_cb_on_group_application_rejected(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_rejected) cb->on_group_application_rejected(group_application);
+}
+
+// OnUserListener wrappers
+static void user_cb_on_self_info_updated(user_listener_t* cb, const char* user_info) {
+    if (cb && cb->on_self_info_updated) cb->on_self_info_updated(user_info);
+}
+static void user_cb_on_user_status_changed(user_listener_t* cb, const char* user_online_status) {
+    if (cb && cb->on_user_status_changed) cb->on_user_status_changed(user_online_status);
+}
+
+// OnCustomBusinessListener wrapper
+static void business_cb_on_recv(custom_business_listener_t* cb, const char* business_message) {
+    if (cb && cb->on_recv_custom_business_message) cb->on_recv_custom_business_message(business_message);
+}
+
+// OnMessageKvInfoListener wrapper
+static void msgkv_cb_on_changed(message_kv_info_listener_t* cb, const char* message_changed_list) {
+    if (cb && cb->on_message_kv_info_changed) cb->on_message_kv_info_changed(message_changed_list);
+}
+
+// UploadFileCallback wrappers
+static void upload_file_cb_open(upload_file_callback_t* cb, int64_t size) {
+    if (cb && cb->open) cb->open(size);
+}
+static void upload_file_cb_part_size(upload_file_callback_t* cb, int64_t part_size, int num) {
+    if (cb && cb->part_size) cb->part_size(part_size, num);
+}
+static void upload_file_cb_hash_part_progress(upload_file_callback_t* cb, int index, int64_t size, const char* part_hash) {
+    if (cb && cb->hash_part_progress) cb->hash_part_progress(index, size, part_hash);
+}
+static void upload_file_cb_hash_part_complete(upload_file_callback_t* cb, const char* parts_hash, const char* file_hash) {
+    if (cb && cb->hash_part_complete) cb->hash_part_complete(parts_hash, file_hash);
+}
+static void upload_file_cb_upload_id(upload_file_callback_t* cb, const char* upload_id) {
+    if (cb && cb->upload_id) cb->upload_id(upload_id);
+}
+static void upload_file_cb_upload_part_complete(upload_file_callback_t* cb, int index, int64_t part_size, const char* part_hash) {
+    if (cb && cb->upload_part_complete) cb->upload_part_complete(index, part_size, part_hash);
+}
+static void upload_file_cb_upload_complete(upload_file_callback_t* cb, int64_t file_size, int64_t stream_size, int64_t storage_size) {
+    if (cb && cb->upload_complete) cb->upload_complete(file_size, stream_size, storage_size);
+}
+static void upload_file_cb_complete(upload_file_callback_t* cb, int64_t size, const char* url, int typ) {
+    if (cb && cb->complete) cb->complete(size, url, typ);
+}
+
+// UploadLogProgress wrapper
+static void upload_log_cb_on_progress(upload_log_progress_t* cb, int64_t current, int64_t size) {
+    if (cb && cb->on_progress) cb->on_progress(current, size);
+}
+
+#endif // OPENIM_CALLBACK_TYPES_H
+
 
 #line 1 "cgo-generated-wrapper"
 
 #line 17 "user_c.go"
 
-#include "callback_types.h"
+#ifndef OPENIM_CALLBACK_TYPES_H
+#define OPENIM_CALLBACK_TYPES_H
+
+#include <stdint.h>
+#include <stdlib.h>
+
+// ===================== C callback function pointer types =====================
+
+// Base callback
+typedef void (*on_success_t)(const char* data);
+typedef void (*on_error_t)(int32_t err_code, const char* err_msg);
+
+typedef struct {
+    on_success_t on_success;
+    on_error_t   on_error;
+} base_callback_t;
+
+// SendMsg callback (Base + progress)
+typedef void (*on_progress_t)(int progress);
+
+typedef struct {
+    on_success_t  on_success;
+    on_error_t    on_error;
+    on_progress_t on_progress;
+} send_msg_callback_t;
+
+// OnConnListener
+typedef void (*on_connecting_t)();
+typedef void (*on_connect_success_t)();
+typedef void (*on_connect_failed_t)(int32_t err_code, const char* err_msg);
+typedef void (*on_kicked_offline_t)();
+typedef void (*on_user_token_expired_t)();
+typedef void (*on_user_token_invalid_t)(const char* err_msg);
+
+typedef struct {
+    on_connecting_t         on_connecting;
+    on_connect_success_t    on_connect_success;
+    on_connect_failed_t     on_connect_failed;
+    on_kicked_offline_t     on_kicked_offline;
+    on_user_token_expired_t on_user_token_expired;
+    on_user_token_invalid_t on_user_token_invalid;
+} conn_listener_t;
+
+// OnConversationListener
+typedef void (*on_sync_server_start_t)(int reinstalled);
+typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_progress_t)(int progress);
+typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_new_conversation_t)(const char* conversation_list);
+typedef void (*on_conversation_changed_t)(const char* conversation_list);
+typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
+typedef void (*on_conversation_user_input_status_changed_t)(const char* change);
+
+typedef struct {
+    on_sync_server_start_t                      on_sync_server_start;
+    on_sync_server_finish_t                     on_sync_server_finish;
+    on_sync_server_progress_t                   on_sync_server_progress;
+    on_sync_server_failed_t                     on_sync_server_failed;
+    on_new_conversation_t                       on_new_conversation;
+    on_conversation_changed_t                   on_conversation_changed;
+    on_total_unread_count_changed_t             on_total_unread_count_changed;
+    on_conversation_user_input_status_changed_t on_conversation_user_input_status_changed;
+} conversation_listener_t;
+
+// OnAdvancedMsgListener
+typedef void (*on_recv_new_message_t)(const char* message);
+typedef void (*on_recv_c2c_read_receipt_t)(const char* msg_receipt_list);
+typedef void (*on_new_recv_message_revoked_t)(const char* message_revoked);
+typedef void (*on_recv_offline_new_message_t)(const char* message);
+typedef void (*on_msg_deleted_t)(const char* message);
+typedef void (*on_recv_online_only_message_t)(const char* message);
+
+typedef struct {
+    on_recv_new_message_t          on_recv_new_message;
+    on_recv_c2c_read_receipt_t     on_recv_c2c_read_receipt;
+    on_new_recv_message_revoked_t  on_new_recv_message_revoked;
+    on_recv_offline_new_message_t  on_recv_offline_new_message;
+    on_msg_deleted_t               on_msg_deleted;
+    on_recv_online_only_message_t  on_recv_online_only_message;
+} advanced_msg_listener_t;
+
+// OnFriendshipListener
+typedef void (*on_friend_application_added_t)(const char* friend_application);
+typedef void (*on_friend_application_deleted_t)(const char* friend_application);
+typedef void (*on_friend_application_accepted_t)(const char* friend_application);
+typedef void (*on_friend_application_rejected_t)(const char* friend_application);
+typedef void (*on_friend_added_t)(const char* friend_info);
+typedef void (*on_friend_deleted_t)(const char* friend_info);
+typedef void (*on_friend_info_changed_t)(const char* friend_info);
+typedef void (*on_black_added_t)(const char* black_info);
+typedef void (*on_black_deleted_t)(const char* black_info);
+
+typedef struct {
+    on_friend_application_added_t    on_friend_application_added;
+    on_friend_application_deleted_t  on_friend_application_deleted;
+    on_friend_application_accepted_t on_friend_application_accepted;
+    on_friend_application_rejected_t on_friend_application_rejected;
+    on_friend_added_t                on_friend_added;
+    on_friend_deleted_t              on_friend_deleted;
+    on_friend_info_changed_t         on_friend_info_changed;
+    on_black_added_t                 on_black_added;
+    on_black_deleted_t               on_black_deleted;
+} friendship_listener_t;
+
+// OnGroupListener
+typedef void (*on_joined_group_added_t)(const char* group_info);
+typedef void (*on_joined_group_deleted_t)(const char* group_info);
+typedef void (*on_group_member_added_t)(const char* group_member_info);
+typedef void (*on_group_member_deleted_t)(const char* group_member_info);
+typedef void (*on_group_application_added_t)(const char* group_application);
+typedef void (*on_group_application_deleted_t)(const char* group_application);
+typedef void (*on_group_info_changed_t)(const char* group_info);
+typedef void (*on_group_dismissed_t)(const char* group_info);
+typedef void (*on_group_member_info_changed_t)(const char* group_member_info);
+typedef void (*on_group_application_accepted_t)(const char* group_application);
+typedef void (*on_group_application_rejected_t)(const char* group_application);
+
+typedef struct {
+    on_joined_group_added_t           on_joined_group_added;
+    on_joined_group_deleted_t         on_joined_group_deleted;
+    on_group_member_added_t           on_group_member_added;
+    on_group_member_deleted_t         on_group_member_deleted;
+    on_group_application_added_t      on_group_application_added;
+    on_group_application_deleted_t    on_group_application_deleted;
+    on_group_info_changed_t           on_group_info_changed;
+    on_group_dismissed_t              on_group_dismissed;
+    on_group_member_info_changed_t    on_group_member_info_changed;
+    on_group_application_accepted_t   on_group_application_accepted;
+    on_group_application_rejected_t   on_group_application_rejected;
+} group_listener_t;
+
+// OnUserListener
+typedef void (*on_self_info_updated_t)(const char* user_info);
+typedef void (*on_user_status_changed_t)(const char* user_online_status);
+
+typedef struct {
+    on_self_info_updated_t     on_self_info_updated;
+    on_user_status_changed_t   on_user_status_changed;
+} user_listener_t;
+
+// OnCustomBusinessListener
+typedef void (*on_recv_custom_business_message_t)(const char* business_message);
+
+typedef struct {
+    on_recv_custom_business_message_t on_recv_custom_business_message;
+} custom_business_listener_t;
+
+// OnMessageKvInfoListener
+typedef void (*on_message_kv_info_changed_t)(const char* message_changed_list);
+
+typedef struct {
+    on_message_kv_info_changed_t on_message_kv_info_changed;
+} message_kv_info_listener_t;
+
+// UploadFileCallback
+typedef void (*upload_file_open_t)(int64_t size);
+typedef void (*upload_file_part_size_t)(int64_t part_size, int num);
+typedef void (*upload_file_hash_part_progress_t)(int index, int64_t size, const char* part_hash);
+typedef void (*upload_file_hash_part_complete_t)(const char* parts_hash, const char* file_hash);
+typedef void (*upload_file_upload_id_t)(const char* upload_id);
+typedef void (*upload_file_upload_part_complete_t)(int index, int64_t part_size, const char* part_hash);
+typedef void (*upload_file_upload_complete_t)(int64_t file_size, int64_t stream_size, int64_t storage_size);
+typedef void (*upload_file_complete_t)(int64_t size, const char* url, int typ);
+
+typedef struct {
+    upload_file_open_t                     open;
+    upload_file_part_size_t                part_size;
+    upload_file_hash_part_progress_t       hash_part_progress;
+    upload_file_hash_part_complete_t       hash_part_complete;
+    upload_file_upload_id_t                upload_id;
+    upload_file_upload_part_complete_t     upload_part_complete;
+    upload_file_upload_complete_t          upload_complete;
+    upload_file_complete_t                 complete;
+} upload_file_callback_t;
+
+// UploadLogProgress
+typedef void (*upload_log_progress_cb_t)(int64_t current, int64_t size);
+
+typedef struct {
+    upload_log_progress_cb_t on_progress;
+} upload_log_progress_t;
+
+// ===================== C wrapper functions (safe function pointer calls) =====================
+
+// Base callback wrappers
+static void base_cb_on_success(base_callback_t* cb, const char* data) {
+    if (cb && cb->on_success) cb->on_success(data);
+}
+static void base_cb_on_error(base_callback_t* cb, int32_t err_code, const char* err_msg) {
+    if (cb && cb->on_error) cb->on_error(err_code, err_msg);
+}
+
+// SendMsg callback wrappers
+static void send_msg_cb_on_progress(send_msg_callback_t* cb, int progress) {
+    if (cb && cb->on_progress) cb->on_progress(progress);
+}
+
+// OnConnListener wrappers
+static void conn_cb_on_connecting(conn_listener_t* cb) {
+    if (cb && cb->on_connecting) cb->on_connecting();
+}
+static void conn_cb_on_connect_success(conn_listener_t* cb) {
+    if (cb && cb->on_connect_success) cb->on_connect_success();
+}
+static void conn_cb_on_connect_failed(conn_listener_t* cb, int32_t err_code, const char* err_msg) {
+    if (cb && cb->on_connect_failed) cb->on_connect_failed(err_code, err_msg);
+}
+static void conn_cb_on_kicked_offline(conn_listener_t* cb) {
+    if (cb && cb->on_kicked_offline) cb->on_kicked_offline();
+}
+static void conn_cb_on_user_token_expired(conn_listener_t* cb) {
+    if (cb && cb->on_user_token_expired) cb->on_user_token_expired();
+}
+static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_msg) {
+    if (cb && cb->on_user_token_invalid) cb->on_user_token_invalid(err_msg);
+}
+
+// OnConversationListener wrappers
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
+}
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
+}
+static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
+    if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
+}
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+    if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
+}
+static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {
+    if (cb && cb->on_new_conversation) cb->on_new_conversation(conversation_list);
+}
+static void conv_cb_on_conversation_changed(conversation_listener_t* cb, const char* conversation_list) {
+    if (cb && cb->on_conversation_changed) cb->on_conversation_changed(conversation_list);
+}
+static void conv_cb_on_total_unread_count_changed(conversation_listener_t* cb, int32_t total_unread_count) {
+    if (cb && cb->on_total_unread_count_changed) cb->on_total_unread_count_changed(total_unread_count);
+}
+static void conv_cb_on_conversation_user_input_status_changed(conversation_listener_t* cb, const char* change) {
+    if (cb && cb->on_conversation_user_input_status_changed) cb->on_conversation_user_input_status_changed(change);
+}
+
+// OnAdvancedMsgListener wrappers
+static void msg_cb_on_recv_new_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_new_message) cb->on_recv_new_message(message);
+}
+static void msg_cb_on_recv_c2c_read_receipt(advanced_msg_listener_t* cb, const char* msg_receipt_list) {
+    if (cb && cb->on_recv_c2c_read_receipt) cb->on_recv_c2c_read_receipt(msg_receipt_list);
+}
+static void msg_cb_on_new_recv_message_revoked(advanced_msg_listener_t* cb, const char* message_revoked) {
+    if (cb && cb->on_new_recv_message_revoked) cb->on_new_recv_message_revoked(message_revoked);
+}
+static void msg_cb_on_recv_offline_new_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_offline_new_message) cb->on_recv_offline_new_message(message);
+}
+static void msg_cb_on_msg_deleted(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_msg_deleted) cb->on_msg_deleted(message);
+}
+static void msg_cb_on_recv_online_only_message(advanced_msg_listener_t* cb, const char* message) {
+    if (cb && cb->on_recv_online_only_message) cb->on_recv_online_only_message(message);
+}
+
+// OnFriendshipListener wrappers
+static void friend_cb_on_application_added(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_added) cb->on_friend_application_added(friend_application);
+}
+static void friend_cb_on_application_deleted(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_deleted) cb->on_friend_application_deleted(friend_application);
+}
+static void friend_cb_on_application_accepted(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_accepted) cb->on_friend_application_accepted(friend_application);
+}
+static void friend_cb_on_application_rejected(friendship_listener_t* cb, const char* friend_application) {
+    if (cb && cb->on_friend_application_rejected) cb->on_friend_application_rejected(friend_application);
+}
+static void friend_cb_on_friend_added(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_added) cb->on_friend_added(friend_info);
+}
+static void friend_cb_on_friend_deleted(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_deleted) cb->on_friend_deleted(friend_info);
+}
+static void friend_cb_on_friend_info_changed(friendship_listener_t* cb, const char* friend_info) {
+    if (cb && cb->on_friend_info_changed) cb->on_friend_info_changed(friend_info);
+}
+static void friend_cb_on_black_added(friendship_listener_t* cb, const char* black_info) {
+    if (cb && cb->on_black_added) cb->on_black_added(black_info);
+}
+static void friend_cb_on_black_deleted(friendship_listener_t* cb, const char* black_info) {
+    if (cb && cb->on_black_deleted) cb->on_black_deleted(black_info);
+}
+
+// OnGroupListener wrappers
+static void group_cb_on_joined_group_added(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_joined_group_added) cb->on_joined_group_added(group_info);
+}
+static void group_cb_on_joined_group_deleted(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_joined_group_deleted) cb->on_joined_group_deleted(group_info);
+}
+static void group_cb_on_group_member_added(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_added) cb->on_group_member_added(group_member_info);
+}
+static void group_cb_on_group_member_deleted(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_deleted) cb->on_group_member_deleted(group_member_info);
+}
+static void group_cb_on_group_application_added(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_added) cb->on_group_application_added(group_application);
+}
+static void group_cb_on_group_application_deleted(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_deleted) cb->on_group_application_deleted(group_application);
+}
+static void group_cb_on_group_info_changed(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_group_info_changed) cb->on_group_info_changed(group_info);
+}
+static void group_cb_on_group_dismissed(group_listener_t* cb, const char* group_info) {
+    if (cb && cb->on_group_dismissed) cb->on_group_dismissed(group_info);
+}
+static void group_cb_on_group_member_info_changed(group_listener_t* cb, const char* group_member_info) {
+    if (cb && cb->on_group_member_info_changed) cb->on_group_member_info_changed(group_member_info);
+}
+static void group_cb_on_group_application_accepted(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_accepted) cb->on_group_application_accepted(group_application);
+}
+static void group_cb_on_group_application_rejected(group_listener_t* cb, const char* group_application) {
+    if (cb && cb->on_group_application_rejected) cb->on_group_application_rejected(group_application);
+}
+
+// OnUserListener wrappers
+static void user_cb_on_self_info_updated(user_listener_t* cb, const char* user_info) {
+    if (cb && cb->on_self_info_updated) cb->on_self_info_updated(user_info);
+}
+static void user_cb_on_user_status_changed(user_listener_t* cb, const char* user_online_status) {
+    if (cb && cb->on_user_status_changed) cb->on_user_status_changed(user_online_status);
+}
+
+// OnCustomBusinessListener wrapper
+static void business_cb_on_recv(custom_business_listener_t* cb, const char* business_message) {
+    if (cb && cb->on_recv_custom_business_message) cb->on_recv_custom_business_message(business_message);
+}
+
+// OnMessageKvInfoListener wrapper
+static void msgkv_cb_on_changed(message_kv_info_listener_t* cb, const char* message_changed_list) {
+    if (cb && cb->on_message_kv_info_changed) cb->on_message_kv_info_changed(message_changed_list);
+}
+
+// UploadFileCallback wrappers
+static void upload_file_cb_open(upload_file_callback_t* cb, int64_t size) {
+    if (cb && cb->open) cb->open(size);
+}
+static void upload_file_cb_part_size(upload_file_callback_t* cb, int64_t part_size, int num) {
+    if (cb && cb->part_size) cb->part_size(part_size, num);
+}
+static void upload_file_cb_hash_part_progress(upload_file_callback_t* cb, int index, int64_t size, const char* part_hash) {
+    if (cb && cb->hash_part_progress) cb->hash_part_progress(index, size, part_hash);
+}
+static void upload_file_cb_hash_part_complete(upload_file_callback_t* cb, const char* parts_hash, const char* file_hash) {
+    if (cb && cb->hash_part_complete) cb->hash_part_complete(parts_hash, file_hash);
+}
+static void upload_file_cb_upload_id(upload_file_callback_t* cb, const char* upload_id) {
+    if (cb && cb->upload_id) cb->upload_id(upload_id);
+}
+static void upload_file_cb_upload_part_complete(upload_file_callback_t* cb, int index, int64_t part_size, const char* part_hash) {
+    if (cb && cb->upload_part_complete) cb->upload_part_complete(index, part_size, part_hash);
+}
+static void upload_file_cb_upload_complete(upload_file_callback_t* cb, int64_t file_size, int64_t stream_size, int64_t storage_size) {
+    if (cb && cb->upload_complete) cb->upload_complete(file_size, stream_size, storage_size);
+}
+static void upload_file_cb_complete(upload_file_callback_t* cb, int64_t size, const char* url, int typ) {
+    if (cb && cb->complete) cb->complete(size, url, typ);
+}
+
+// UploadLogProgress wrapper
+static void upload_log_cb_on_progress(upload_log_progress_t* cb, int64_t current, int64_t size) {
+    if (cb && cb->on_progress) cb->on_progress(current, size);
+}
+
+#endif // OPENIM_CALLBACK_TYPES_H
+
 
 #line 1 "cgo-generated-wrapper"
 
@@ -136,8 +3152,7 @@ extern "C" {
 #endif
 
 
-// OpenIM_GetAllConversationList 获取所有会话列表（异步）
-//
+// OpenIM_GetAllConversationList 获取所有会话列表（异步�?//
 extern void OpenIM_GetAllConversationList(base_callback_t* cb, char* operationID);
 
 // OpenIM_GetConversationListSplit 分页获取会话列表（异步）
@@ -152,8 +3167,7 @@ extern void OpenIM_GetOneConversation(base_callback_t* cb, char* operationID, in
 //
 extern void OpenIM_GetMultipleConversation(base_callback_t* cb, char* operationID, char* conversationIDList);
 
-// OpenIM_SetConversation 设置会话属性（异步）
-//
+// OpenIM_SetConversation 设置会话属性（异步�?//
 extern void OpenIM_SetConversation(base_callback_t* cb, char* operationID, char* conversationID, char* req);
 
 // OpenIM_HideConversation 隐藏会话（异步）
@@ -168,16 +3182,13 @@ extern void OpenIM_SetConversationDraft(base_callback_t* cb, char* operationID, 
 //
 extern void OpenIM_GetTotalUnreadMsgCount(base_callback_t* cb, char* operationID);
 
-// OpenIM_HideAllConversations 隐藏所有会话（异步）
-//
+// OpenIM_HideAllConversations 隐藏所有会话（异步�?//
 extern void OpenIM_HideAllConversations(base_callback_t* cb, char* operationID);
 
-// OpenIM_ClearConversationAndDeleteAllMsg 清空会话并删除所有消息（异步）
-//
+// OpenIM_ClearConversationAndDeleteAllMsg 清空会话并删除所有消息（异步�?//
 extern void OpenIM_ClearConversationAndDeleteAllMsg(base_callback_t* cb, char* operationID, char* conversationID);
 
-// OpenIM_DeleteConversationAndDeleteAllMsg 删除会话及所有消息（异步）
-//
+// OpenIM_DeleteConversationAndDeleteAllMsg 删除会话及所有消息（异步�?//
 extern void OpenIM_DeleteConversationAndDeleteAllMsg(base_callback_t* cb, char* operationID, char* conversationID);
 
 // OpenIM_GetAtAllTag 获取 @全部 标识（同步）
@@ -200,8 +3211,7 @@ extern char* OpenIM_CreateTextAtMessage(char* operationID, char* text, char* atU
 //
 extern char* OpenIM_CreateLocationMessage(char* operationID, char* description, double longitude, double latitude);
 
-// OpenIM_CreateCustomMessage 创建自定义消息（同步）
-//
+// OpenIM_CreateCustomMessage 创建自定义消息（同步�?//
 extern char* OpenIM_CreateCustomMessage(char* operationID, char* data, char* extension, char* description);
 
 // OpenIM_CreateQuoteMessage 创建引用消息（同步）
@@ -280,8 +3290,7 @@ extern char* OpenIM_CreateForwardMessage(char* operationID, char* m);
 //
 extern char* OpenIM_GetConversationIDBySessionType(char* operationID, char* sourceID, int sessionType);
 
-// OpenIM_SendMessage 发送消息（异步，进度通过 callback 返回）
-//
+// OpenIM_SendMessage 发送消息（异步，进度通过 callback 返回�?//
 extern void OpenIM_SendMessage(send_msg_callback_t* cb, char* operationID, char* message, char* recvID, char* groupID, char* offlinePushInfo, int isOnlineOnly);
 
 // OpenIM_SendMessageNotOss 发送消息不经过 OSS（异步）
@@ -312,61 +3321,50 @@ extern void OpenIM_SearchConversation(base_callback_t* cb, char* operationID, ch
 //
 extern void OpenIM_RevokeMessage(base_callback_t* cb, char* operationID, char* conversationID, char* clientMsgID);
 
-// OpenIM_TypingStatusUpdate 输入状态更新（异步）
-//
+// OpenIM_TypingStatusUpdate 输入状态更新（异步�?//
 extern void OpenIM_TypingStatusUpdate(base_callback_t* cb, char* operationID, char* recvID, char* msgTip);
 
 // OpenIM_MarkConversationMessageAsRead 标记会话消息已读（异步）
 //
 extern void OpenIM_MarkConversationMessageAsRead(base_callback_t* cb, char* operationID, char* conversationID);
 
-// OpenIM_MarkAllConversationMessageAsRead 标记所有会话消息已读（异步）
-//
+// OpenIM_MarkAllConversationMessageAsRead 标记所有会话消息已读（异步�?//
 extern void OpenIM_MarkAllConversationMessageAsRead(base_callback_t* cb, char* operationID);
 
 // OpenIM_MarkMessagesAsReadByMsgID 按消息ID标记已读（异步）
 //
 extern void OpenIM_MarkMessagesAsReadByMsgID(base_callback_t* cb, char* operationID, char* conversationID, char* clientMsgIDs);
 
-// OpenIM_DeleteMessageFromLocalStorage 从本地存储删除消息（异步）
-//
+// OpenIM_DeleteMessageFromLocalStorage 从本地存储删除消息（异步�?//
 extern void OpenIM_DeleteMessageFromLocalStorage(base_callback_t* cb, char* operationID, char* conversationID, char* clientMsgID);
 
 // OpenIM_DeleteMessage 删除消息（异步）
 //
 extern void OpenIM_DeleteMessage(base_callback_t* cb, char* operationID, char* conversationID, char* clientMsgID);
 
-// OpenIM_DeleteAllMsgFromLocalAndSvr 删除本地和服务端所有消息（异步）
-//
+// OpenIM_DeleteAllMsgFromLocalAndSvr 删除本地和服务端所有消息（异步�?//
 extern void OpenIM_DeleteAllMsgFromLocalAndSvr(base_callback_t* cb, char* operationID);
 
-// OpenIM_DeleteAllMsgFromLocal 删除本地所有消息（异步）
-//
+// OpenIM_DeleteAllMsgFromLocal 删除本地所有消息（异步�?//
 extern void OpenIM_DeleteAllMsgFromLocal(base_callback_t* cb, char* operationID);
 
-// OpenIM_InsertSingleMessageToLocalStorage 插入单聊消息到本地存储（异步）
-//
+// OpenIM_InsertSingleMessageToLocalStorage 插入单聊消息到本地存储（异步�?//
 extern void OpenIM_InsertSingleMessageToLocalStorage(base_callback_t* cb, char* operationID, char* message, char* recvID, char* sendID);
 
-// OpenIM_InsertGroupMessageToLocalStorage 插入群聊消息到本地存储（异步）
-//
+// OpenIM_InsertGroupMessageToLocalStorage 插入群聊消息到本地存储（异步�?//
 extern void OpenIM_InsertGroupMessageToLocalStorage(base_callback_t* cb, char* operationID, char* message, char* groupID, char* sendID);
 
 // OpenIM_SetMessageLocalEx 设置消息本地扩展信息（异步）
 //
 extern void OpenIM_SetMessageLocalEx(base_callback_t* cb, char* operationID, char* conversationID, char* clientMsgID, char* localEx);
 
-// OpenIM_ChangeInputStates 修改输入状态（异步）
-//
+// OpenIM_ChangeInputStates 修改输入状态（异步�?//
 extern void OpenIM_ChangeInputStates(base_callback_t* cb, char* operationID, char* conversationID, int focus);
 
-// OpenIM_GetInputStates 获取输入状态（异步）
-//
+// OpenIM_GetInputStates 获取输入状态（异步�?//
 extern void OpenIM_GetInputStates(base_callback_t* cb, char* operationID, char* conversationID, char* userID);
 
-// OpenIM_FreeString 释放由 SDK 返回的 C 字符串内存。
-// 鸿蒙侧调用 SDK 返回字符串的函数后，使用完毕需调用此函数释放内存，避免内存泄漏。
-//
+// OpenIM_FreeString 释放�?SDK 返回�?C 字符串内存�?// 鸿蒙侧调�?SDK 返回字符串的函数后，使用完毕需调用此函数释放内存，避免内存泄漏�?//
 extern void OpenIM_FreeString(char* s);
 
 // OpenIM_CreateGroup 创建群组（异步）
@@ -377,16 +3375,14 @@ extern void OpenIM_CreateGroup(base_callback_t* cb, char* operationID, char* gro
 //
 extern void OpenIM_JoinGroup(base_callback_t* cb, char* operationID, char* groupID, char* reqMsg, int32_t joinSource, char* ex);
 
-// OpenIM_QuitGroup 退出群组（异步）
-//
+// OpenIM_QuitGroup 退出群组（异步�?//
 extern void OpenIM_QuitGroup(base_callback_t* cb, char* operationID, char* groupID);
 
 // OpenIM_DismissGroup 解散群组（异步）
 //
 extern void OpenIM_DismissGroup(base_callback_t* cb, char* operationID, char* groupID);
 
-// OpenIM_ChangeGroupMute 修改群组禁言状态（异步）
-//
+// OpenIM_ChangeGroupMute 修改群组禁言状态（异步�?//
 extern void OpenIM_ChangeGroupMute(base_callback_t* cb, char* operationID, char* groupID, int isMute);
 
 // OpenIM_ChangeGroupMemberMute 修改群成员禁言时长（异步）
@@ -397,16 +3393,14 @@ extern void OpenIM_ChangeGroupMemberMute(base_callback_t* cb, char* operationID,
 //
 extern void OpenIM_TransferGroupOwner(base_callback_t* cb, char* operationID, char* groupID, char* newOwnerUserID);
 
-// OpenIM_KickGroupMember 踢出群成员（异步）
-//
+// OpenIM_KickGroupMember 踢出群成员（异步�?//
 extern void OpenIM_KickGroupMember(base_callback_t* cb, char* operationID, char* groupID, char* reason, char* userIDList);
 
 // OpenIM_SetGroupInfo 设置群组信息（异步）
 //
 extern void OpenIM_SetGroupInfo(base_callback_t* cb, char* operationID, char* groupInfo);
 
-// OpenIM_SetGroupMemberInfo 设置群成员信息（异步）
-//
+// OpenIM_SetGroupMemberInfo 设置群成员信息（异步�?//
 extern void OpenIM_SetGroupMemberInfo(base_callback_t* cb, char* operationID, char* groupMemberInfo);
 
 // OpenIM_GetJoinedGroupList 获取已加入的群组列表（异步）
@@ -433,168 +3427,135 @@ extern void OpenIM_GetGroupMemberOwnerAndAdmin(base_callback_t* cb, char* operat
 //
 extern void OpenIM_GetGroupMemberListByJoinTimeFilter(base_callback_t* cb, char* operationID, char* groupID, int32_t offset, int32_t count, int64_t joinTimeBegin, int64_t joinTimeEnd, char* filterUserIDList);
 
-// OpenIM_GetSpecifiedGroupMembersInfo 获取指定群成员信息（异步）
-//
+// OpenIM_GetSpecifiedGroupMembersInfo 获取指定群成员信息（异步�?//
 extern void OpenIM_GetSpecifiedGroupMembersInfo(base_callback_t* cb, char* operationID, char* groupID, char* userIDList);
 
-// OpenIM_GetGroupMemberList 获取群成员列表（异步）
-//
+// OpenIM_GetGroupMemberList 获取群成员列表（异步�?//
 extern void OpenIM_GetGroupMemberList(base_callback_t* cb, char* operationID, char* groupID, int32_t filter, int32_t offset, int32_t count);
 
-// OpenIM_SearchGroupMembers 搜索群成员（异步）
-//
+// OpenIM_SearchGroupMembers 搜索群成员（异步�?//
 extern void OpenIM_SearchGroupMembers(base_callback_t* cb, char* operationID, char* searchParam);
 
-// OpenIM_IsJoinGroup 判断是否已加入群组（异步）
-//
+// OpenIM_IsJoinGroup 判断是否已加入群组（异步�?//
 extern void OpenIM_IsJoinGroup(base_callback_t* cb, char* operationID, char* groupID);
 
 // OpenIM_GetUsersInGroup 查询用户是否在群组中（异步）
 //
 extern void OpenIM_GetUsersInGroup(base_callback_t* cb, char* operationID, char* groupID, char* userIDList);
 
-// OpenIM_GetGroupApplicationListAsRecipient 获取作为接收者的群申请列表（异步）
-//
+// OpenIM_GetGroupApplicationListAsRecipient 获取作为接收者的群申请列表（异步�?//
 extern void OpenIM_GetGroupApplicationListAsRecipient(base_callback_t* cb, char* operationID, char* req);
 
-// OpenIM_GetGroupApplicationListAsApplicant 获取作为申请者的群申请列表（异步）
-//
+// OpenIM_GetGroupApplicationListAsApplicant 获取作为申请者的群申请列表（异步�?//
 extern void OpenIM_GetGroupApplicationListAsApplicant(base_callback_t* cb, char* operationID, char* req);
 
-// OpenIM_InviteUserToGroup 邀请用户加入群组（异步）
-//
+// OpenIM_InviteUserToGroup 邀请用户加入群组（异步�?//
 extern void OpenIM_InviteUserToGroup(base_callback_t* cb, char* operationID, char* groupID, char* reason, char* userIDList);
 
-// OpenIM_AcceptGroupApplication 接受群申请（异步）
-//
+// OpenIM_AcceptGroupApplication 接受群申请（异步�?//
 extern void OpenIM_AcceptGroupApplication(base_callback_t* cb, char* operationID, char* groupID, char* fromUserID, char* handleMsg);
 
-// OpenIM_RefuseGroupApplication 拒绝群申请（异步）
-//
+// OpenIM_RefuseGroupApplication 拒绝群申请（异步�?//
 extern void OpenIM_RefuseGroupApplication(base_callback_t* cb, char* operationID, char* groupID, char* fromUserID, char* handleMsg);
 
 // OpenIM_GetGroupApplicationUnhandledCount 获取群申请未处理数量（异步）
 //
 extern void OpenIM_GetGroupApplicationUnhandledCount(base_callback_t* cb, char* operationID, char* req);
 
-// OpenIM_CheckLocalGroupFullSync 检查本地群组全量同步（异步）
-//
+// OpenIM_CheckLocalGroupFullSync 检查本地群组全量同步（异步�?//
 extern void OpenIM_CheckLocalGroupFullSync(base_callback_t* cb, char* operationID);
 
 // OpenIM_CheckGroupMemberFullSync 检查群成员全量同步（异步）
 //
 extern void OpenIM_CheckGroupMemberFullSync(base_callback_t* cb, char* operationID, char* groupID);
 
-// OpenIM_GetSdkVersion 获取 SDK 版本号
-// 返回: C 字符串（需调用 OpenIM_FreeString 释放）
-//
+// OpenIM_GetSdkVersion 获取 SDK 版本�?// 返回: C 字符串（需调用 OpenIM_FreeString 释放�?//
 extern char* OpenIM_GetSdkVersion(void);
 
-// OpenIM_InitSDK 初始化 SDK
+// OpenIM_InitSDK 初始�?SDK
 // 参数:
 //   - connListener: 连接监听器回调结构体指针
-//   - operationID: 操作ID，用于链路追踪
-//   - config: JSON 格式的配置字符串
+//   - operationID: 操作ID，用于链路追�?//   - config: JSON 格式的配置字符串
 //
-// 返回: 1 表示成功，0 表示失败
+// 返回: 1 表示成功�? 表示失败
 //
 extern int OpenIM_InitSDK(conn_listener_t* connListener, char* operationID, char* config);
 
-// OpenIM_UnInitSDK 反初始化 SDK，释放资源
-// 参数:
+// OpenIM_UnInitSDK 反初始化 SDK，释放资�?// 参数:
 //   - operationID: 操作ID
 //
 extern void OpenIM_UnInitSDK(char* operationID);
 
-// OpenIM_Login 登录（异步，结果通过 callback 返回）
-// 参数:
-//   - cb: 基础回调结构体指针
-//   - operationID: 操作ID
+// OpenIM_Login 登录（异步，结果通过 callback 返回�?// 参数:
+//   - cb: 基础回调结构体指�?//   - operationID: 操作ID
 //   - userID: 用户ID
 //   - token: 登录令牌
 //
 extern void OpenIM_Login(base_callback_t* cb, char* operationID, char* userID, char* token);
 
-// OpenIM_Logout 登出（异步，结果通过 callback 返回）
-//
+// OpenIM_Logout 登出（异步，结果通过 callback 返回�?//
 extern void OpenIM_Logout(base_callback_t* cb, char* operationID);
 
-// OpenIM_GetLoginStatus 获取登录状态（同步）
-// 返回: 1=已登出, 2=登录中, 3=已登录
-//
+// OpenIM_GetLoginStatus 获取登录状态（同步�?// 返回: 1=已登�? 2=登录�? 3=已登�?//
 extern int OpenIM_GetLoginStatus(char* operationID);
 
 // OpenIM_GetLoginUserID 获取当前登录用户ID（同步）
-// 返回: C 字符串（需调用 OpenIM_FreeString 释放）
-//
+// 返回: C 字符串（需调用 OpenIM_FreeString 释放�?//
 extern char* OpenIM_GetLoginUserID(void);
 
-// OpenIM_SetAppBackgroundStatus 设置 App 前后台状态（异步）
-// 参数:
-//   - isBackground: 1 表示后台，0 表示前台
+// OpenIM_SetAppBackgroundStatus 设置 App 前后台状态（异步�?// 参数:
+//   - isBackground: 1 表示后台�? 表示前台
 //
 extern void OpenIM_SetAppBackgroundStatus(base_callback_t* cb, char* operationID, int isBackground);
 
-// OpenIM_NetworkStatusChanged 通知网络状态变化（异步）
-//
+// OpenIM_NetworkStatusChanged 通知网络状态变化（异步�?//
 extern void OpenIM_NetworkStatusChanged(base_callback_t* cb, char* operationID);
 
-// OpenIM_SetGroupListener 设置群组事件监听器
-// 参数:
+// OpenIM_SetGroupListener 设置群组事件监听�?// 参数:
 //   - listener: 群组监听器回调结构体指针
 //
 extern void OpenIM_SetGroupListener(group_listener_t* listener);
 
-// OpenIM_SetConversationListener 设置会话事件监听器
-// 参数:
+// OpenIM_SetConversationListener 设置会话事件监听�?// 参数:
 //   - listener: 会话监听器回调结构体指针
 //
 extern void OpenIM_SetConversationListener(conversation_listener_t* listener);
 
-// OpenIM_SetAdvancedMsgListener 设置高级消息事件监听器
-// 参数:
+// OpenIM_SetAdvancedMsgListener 设置高级消息事件监听�?// 参数:
 //   - listener: 消息监听器回调结构体指针
 //
 extern void OpenIM_SetAdvancedMsgListener(advanced_msg_listener_t* listener);
 
-// OpenIM_SetUserListener 设置用户事件监听器
-// 参数:
+// OpenIM_SetUserListener 设置用户事件监听�?// 参数:
 //   - listener: 用户监听器回调结构体指针
 //
 extern void OpenIM_SetUserListener(user_listener_t* listener);
 
-// OpenIM_SetFriendListener 设置好友事件监听器
-// 参数:
+// OpenIM_SetFriendListener 设置好友事件监听�?// 参数:
 //   - listener: 好友监听器回调结构体指针
 //
 extern void OpenIM_SetFriendListener(friendship_listener_t* listener);
 
 // OpenIM_SetCustomBusinessListener 设置自定义业务事件监听器
 // 参数:
-//   - listener: 自定义业务监听器回调结构体指针
-//
+//   - listener: 自定义业务监听器回调结构体指�?//
 extern void OpenIM_SetCustomBusinessListener(custom_business_listener_t* listener);
 
-// OpenIM_SetMessageKvInfoListener 设置消息 KV 信息变更监听器
-// 参数:
+// OpenIM_SetMessageKvInfoListener 设置消息 KV 信息变更监听�?// 参数:
 //   - listener: 消息 KV 监听器回调结构体指针
 //
 extern void OpenIM_SetMessageKvInfoListener(message_kv_info_listener_t* listener);
 
-// OpenIM_SubscribeUsersStatus 订阅用户在线状态（异步）
-//
+// OpenIM_SubscribeUsersStatus 订阅用户在线状态（异步�?//
 extern void OpenIM_SubscribeUsersStatus(base_callback_t* cb, char* operationID, char* userIDs);
 
-// OpenIM_UnsubscribeUsersStatus 取消订阅用户在线状态（异步）
-//
+// OpenIM_UnsubscribeUsersStatus 取消订阅用户在线状态（异步�?//
 extern void OpenIM_UnsubscribeUsersStatus(base_callback_t* cb, char* operationID, char* userIDs);
 
-// OpenIM_GetSubscribeUsersStatus 获取已订阅用户在线状态（异步）
-//
+// OpenIM_GetSubscribeUsersStatus 获取已订阅用户在线状态（异步�?//
 extern void OpenIM_GetSubscribeUsersStatus(base_callback_t* cb, char* operationID);
 
-// OpenIM_GetUserStatus 获取用户在线状态（异步）
-//
+// OpenIM_GetUserStatus 获取用户在线状态（异步�?//
 extern void OpenIM_GetUserStatus(base_callback_t* cb, char* operationID, char* userIDs);
 
 // OpenIM_GetSpecifiedFriendsInfo 获取指定好友信息（异步）
@@ -613,8 +3574,7 @@ extern void OpenIM_GetFriendListPage(base_callback_t* cb, char* operationID, int
 //
 extern void OpenIM_SearchFriends(base_callback_t* cb, char* operationID, char* searchParam);
 
-// OpenIM_CheckFriend 检查好友关系（异步）
-//
+// OpenIM_CheckFriend 检查好友关系（异步�?//
 extern void OpenIM_CheckFriend(base_callback_t* cb, char* operationID, char* userIDList);
 
 // OpenIM_AddFriend 添加好友（异步）
@@ -645,34 +3605,29 @@ extern void OpenIM_AcceptFriendApplication(base_callback_t* cb, char* operationI
 //
 extern void OpenIM_RefuseFriendApplication(base_callback_t* cb, char* operationID, char* userIDHandleMsg);
 
-// OpenIM_GetFriendApplicationUnhandledCount 获取好友申请未处理数量（异步）
-//
+// OpenIM_GetFriendApplicationUnhandledCount 获取好友申请未处理数量（异步�?//
 extern void OpenIM_GetFriendApplicationUnhandledCount(base_callback_t* cb, char* operationID, char* req);
 
 // OpenIM_AddBlack 拉黑用户（异步）
 //
 extern void OpenIM_AddBlack(base_callback_t* cb, char* operationID, char* blackUserID, char* ex);
 
-// OpenIM_GetBlackList 获取黑名单列表（异步）
-//
+// OpenIM_GetBlackList 获取黑名单列表（异步�?//
 extern void OpenIM_GetBlackList(base_callback_t* cb, char* operationID);
 
-// OpenIM_RemoveBlack 移除黑名单（异步）
-//
+// OpenIM_RemoveBlack 移除黑名单（异步�?//
 extern void OpenIM_RemoveBlack(base_callback_t* cb, char* operationID, char* removeUserID);
 
-// OpenIM_UpdateFcmToken 更新 FCM 推送 Token（异步）
+// OpenIM_UpdateFcmToken 更新 FCM 推�?Token（异步）
 //
 extern void OpenIM_UpdateFcmToken(base_callback_t* cb, char* operationID, char* fcmToken, int64_t expireTime);
 
-// OpenIM_SetAppBadge 设置应用角标未读数（异步）
-//
+// OpenIM_SetAppBadge 设置应用角标未读数（异步�?//
 extern void OpenIM_SetAppBadge(base_callback_t* cb, char* operationID, int32_t appUnreadCount);
 
 // OpenIM_UploadLogs 上传日志（异步）
 // 参数:
-//   - progress: 日志上传进度回调结构体指针
-//
+//   - progress: 日志上传进度回调结构体指�?//
 extern void OpenIM_UploadLogs(base_callback_t* cb, char* operationID, int line, char* ex, upload_log_progress_t* progress);
 
 // OpenIM_Logs 写入日志（异步）
@@ -681,8 +3636,7 @@ extern void OpenIM_Logs(base_callback_t* cb, char* operationID, int logLevel, ch
 
 // OpenIM_UploadFile 上传文件（异步）
 // 参数:
-//   - progress: 文件上传回调结构体指针
-//
+//   - progress: 文件上传回调结构体指�?//
 extern void OpenIM_UploadFile(base_callback_t* cb, char* operationID, char* req, upload_file_callback_t* progress);
 
 // OpenIM_GetUsersInfo 获取用户信息（异步）
@@ -697,8 +3651,7 @@ extern void OpenIM_SetSelfInfo(base_callback_t* cb, char* operationID, char* use
 //
 extern void OpenIM_GetSelfUserInfo(base_callback_t* cb, char* operationID);
 
-// OpenIM_GetUserClientConfig 获取用户客户端配置（异步）
-//
+// OpenIM_GetUserClientConfig 获取用户客户端配置（异步�?//
 extern void OpenIM_GetUserClientConfig(base_callback_t* cb, char* operationID);
 
 #ifdef __cplusplus

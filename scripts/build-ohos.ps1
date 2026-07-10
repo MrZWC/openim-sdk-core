@@ -141,11 +141,24 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+# Post-process: inline callback_types.h into the generated header
+# The generated libopenim_sdk.h contains #include "callback_types.h" which is not
+# distributed alongside it. Replace with actual content to make the header self-contained.
+$generatedHeader = "$OUTPUT_DIR\libopenim_sdk.h"
+$callbackTypesPath = "$PROJECT_ROOT\cmd\ohos\callback_types.h"
+if ((Test-Path $generatedHeader) -and (Test-Path $callbackTypesPath)) {
+    $headerContent = [System.IO.File]::ReadAllText((Resolve-Path $generatedHeader))
+    $callbackContent = [System.IO.File]::ReadAllText((Resolve-Path $callbackTypesPath))
+    $headerContent = $headerContent.Replace('#include "callback_types.h"', $callbackContent)
+    [System.IO.File]::WriteAllText((Resolve-Path $generatedHeader), $headerContent)
+    Write-Host "  Inlined callback_types.h into generated header"
+}
+
 Write-Host ""
 Write-Host "===========> Build completed successfully!" -ForegroundColor Green
 Write-Host "Output files:"
 Write-Host "  Library: $OUTPUT_LIB"
-Write-Host "  Header:  $OUTPUT_DIR\libopenim_sdk.h"
+Write-Host "  Header:  $OUTPUT_DIR\libopenim_sdk.h (self-contained)"
 Write-Host ""
 Write-Host "To use in HarmonyOS project:"
 Write-Host "  1. Copy libopenim_sdk.so to your project's libs/arm64-v8a/ directory"
