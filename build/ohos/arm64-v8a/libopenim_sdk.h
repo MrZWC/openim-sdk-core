@@ -12,8 +12,6 @@
 
 #ifndef GO_CGO_GOSTRING_TYPEDEF
 typedef struct { const char *p; ptrdiff_t n; } _GoString_;
-extern size_t _GoStringLen(_GoString_ s);
-extern const char *_GoStringPtr(_GoString_ s);
 #endif
 
 #endif
@@ -3115,15 +3113,9 @@ typedef size_t GoUintptr;
 typedef float GoFloat32;
 typedef double GoFloat64;
 #ifdef _MSC_VER
-#if !defined(__cplusplus) || _MSVC_LANG <= 201402L
 #include <complex.h>
 typedef _Fcomplex GoComplex64;
 typedef _Dcomplex GoComplex128;
-#else
-#include <complex>
-typedef std::complex<float> GoComplex64;
-typedef std::complex<double> GoComplex128;
-#endif
 #else
 typedef float _Complex GoComplex64;
 typedef double _Complex GoComplex128;
@@ -3152,7 +3144,8 @@ extern "C" {
 #endif
 
 
-// OpenIM_GetAllConversationList 获取所有会话列表（异步�?//
+// OpenIM_GetAllConversationList 获取所有会话列表（异步）
+//
 extern void OpenIM_GetAllConversationList(base_callback_t* cb, char* operationID);
 
 // OpenIM_GetConversationListSplit 分页获取会话列表（异步）
@@ -3167,7 +3160,8 @@ extern void OpenIM_GetOneConversation(base_callback_t* cb, char* operationID, in
 //
 extern void OpenIM_GetMultipleConversation(base_callback_t* cb, char* operationID, char* conversationIDList);
 
-// OpenIM_SetConversation 设置会话属性（异步�?//
+// OpenIM_SetConversation 设置会话属性（异步）
+//
 extern void OpenIM_SetConversation(base_callback_t* cb, char* operationID, char* conversationID, char* req);
 
 // OpenIM_HideConversation 隐藏会话（异步）
@@ -3182,13 +3176,16 @@ extern void OpenIM_SetConversationDraft(base_callback_t* cb, char* operationID, 
 //
 extern void OpenIM_GetTotalUnreadMsgCount(base_callback_t* cb, char* operationID);
 
-// OpenIM_HideAllConversations 隐藏所有会话（异步�?//
+// OpenIM_HideAllConversations 隐藏所有会话（异步）
+//
 extern void OpenIM_HideAllConversations(base_callback_t* cb, char* operationID);
 
-// OpenIM_ClearConversationAndDeleteAllMsg 清空会话并删除所有消息（异步�?//
+// OpenIM_ClearConversationAndDeleteAllMsg 清空会话并删除所有消息（异步）
+//
 extern void OpenIM_ClearConversationAndDeleteAllMsg(base_callback_t* cb, char* operationID, char* conversationID);
 
-// OpenIM_DeleteConversationAndDeleteAllMsg 删除会话及所有消息（异步�?//
+// OpenIM_DeleteConversationAndDeleteAllMsg 删除会话及所有消息（异步）
+//
 extern void OpenIM_DeleteConversationAndDeleteAllMsg(base_callback_t* cb, char* operationID, char* conversationID);
 
 // OpenIM_GetAtAllTag 获取 @全部 标识（同步）
@@ -3211,7 +3208,8 @@ extern char* OpenIM_CreateTextAtMessage(char* operationID, char* text, char* atU
 //
 extern char* OpenIM_CreateLocationMessage(char* operationID, char* description, double longitude, double latitude);
 
-// OpenIM_CreateCustomMessage 创建自定义消息（同步�?//
+// OpenIM_CreateCustomMessage 创建自定义消息（同步）
+//
 extern char* OpenIM_CreateCustomMessage(char* operationID, char* data, char* extension, char* description);
 
 // OpenIM_CreateQuoteMessage 创建引用消息（同步）
@@ -3290,7 +3288,8 @@ extern char* OpenIM_CreateForwardMessage(char* operationID, char* m);
 //
 extern char* OpenIM_GetConversationIDBySessionType(char* operationID, char* sourceID, int sessionType);
 
-// OpenIM_SendMessage 发送消息（异步，进度通过 callback 返回�?//
+// OpenIM_SendMessage 发送消息（异步，进度通过 callback 返回）
+//
 extern void OpenIM_SendMessage(send_msg_callback_t* cb, char* operationID, char* message, char* recvID, char* groupID, char* offlinePushInfo, int isOnlineOnly);
 
 // OpenIM_SendMessageNotOss 发送消息不经过 OSS（异步）
@@ -3321,50 +3320,61 @@ extern void OpenIM_SearchConversation(base_callback_t* cb, char* operationID, ch
 //
 extern void OpenIM_RevokeMessage(base_callback_t* cb, char* operationID, char* conversationID, char* clientMsgID);
 
-// OpenIM_TypingStatusUpdate 输入状态更新（异步�?//
+// OpenIM_TypingStatusUpdate 输入状态更新（异步）
+//
 extern void OpenIM_TypingStatusUpdate(base_callback_t* cb, char* operationID, char* recvID, char* msgTip);
 
 // OpenIM_MarkConversationMessageAsRead 标记会话消息已读（异步）
 //
 extern void OpenIM_MarkConversationMessageAsRead(base_callback_t* cb, char* operationID, char* conversationID);
 
-// OpenIM_MarkAllConversationMessageAsRead 标记所有会话消息已读（异步�?//
+// OpenIM_MarkAllConversationMessageAsRead 标记所有会话消息已读（异步）
+//
 extern void OpenIM_MarkAllConversationMessageAsRead(base_callback_t* cb, char* operationID);
 
 // OpenIM_MarkMessagesAsReadByMsgID 按消息ID标记已读（异步）
 //
 extern void OpenIM_MarkMessagesAsReadByMsgID(base_callback_t* cb, char* operationID, char* conversationID, char* clientMsgIDs);
 
-// OpenIM_DeleteMessageFromLocalStorage 从本地存储删除消息（异步�?//
+// OpenIM_DeleteMessageFromLocalStorage 从本地存储删除消息（异步）
+//
 extern void OpenIM_DeleteMessageFromLocalStorage(base_callback_t* cb, char* operationID, char* conversationID, char* clientMsgID);
 
 // OpenIM_DeleteMessage 删除消息（异步）
 //
 extern void OpenIM_DeleteMessage(base_callback_t* cb, char* operationID, char* conversationID, char* clientMsgID);
 
-// OpenIM_DeleteAllMsgFromLocalAndSvr 删除本地和服务端所有消息（异步�?//
+// OpenIM_DeleteAllMsgFromLocalAndSvr 删除本地和服务端所有消息（异步）
+//
 extern void OpenIM_DeleteAllMsgFromLocalAndSvr(base_callback_t* cb, char* operationID);
 
-// OpenIM_DeleteAllMsgFromLocal 删除本地所有消息（异步�?//
+// OpenIM_DeleteAllMsgFromLocal 删除本地所有消息（异步）
+//
 extern void OpenIM_DeleteAllMsgFromLocal(base_callback_t* cb, char* operationID);
 
-// OpenIM_InsertSingleMessageToLocalStorage 插入单聊消息到本地存储（异步�?//
+// OpenIM_InsertSingleMessageToLocalStorage 插入单聊消息到本地存储（异步）
+//
 extern void OpenIM_InsertSingleMessageToLocalStorage(base_callback_t* cb, char* operationID, char* message, char* recvID, char* sendID);
 
-// OpenIM_InsertGroupMessageToLocalStorage 插入群聊消息到本地存储（异步�?//
+// OpenIM_InsertGroupMessageToLocalStorage 插入群聊消息到本地存储（异步）
+//
 extern void OpenIM_InsertGroupMessageToLocalStorage(base_callback_t* cb, char* operationID, char* message, char* groupID, char* sendID);
 
 // OpenIM_SetMessageLocalEx 设置消息本地扩展信息（异步）
 //
 extern void OpenIM_SetMessageLocalEx(base_callback_t* cb, char* operationID, char* conversationID, char* clientMsgID, char* localEx);
 
-// OpenIM_ChangeInputStates 修改输入状态（异步�?//
+// OpenIM_ChangeInputStates 修改输入状态（异步）
+//
 extern void OpenIM_ChangeInputStates(base_callback_t* cb, char* operationID, char* conversationID, int focus);
 
-// OpenIM_GetInputStates 获取输入状态（异步�?//
+// OpenIM_GetInputStates 获取输入状态（异步）
+//
 extern void OpenIM_GetInputStates(base_callback_t* cb, char* operationID, char* conversationID, char* userID);
 
-// OpenIM_FreeString 释放�?SDK 返回�?C 字符串内存�?// 鸿蒙侧调�?SDK 返回字符串的函数后，使用完毕需调用此函数释放内存，避免内存泄漏�?//
+// OpenIM_FreeString 释放由 SDK 返回的 C 字符串内存。
+// 鸿蒙侧调用 SDK 返回字符串的函数后，使用完毕需调用此函数释放内存，避免内存泄漏。
+//
 extern void OpenIM_FreeString(char* s);
 
 // OpenIM_CreateGroup 创建群组（异步）
@@ -3375,14 +3385,16 @@ extern void OpenIM_CreateGroup(base_callback_t* cb, char* operationID, char* gro
 //
 extern void OpenIM_JoinGroup(base_callback_t* cb, char* operationID, char* groupID, char* reqMsg, int32_t joinSource, char* ex);
 
-// OpenIM_QuitGroup 退出群组（异步�?//
+// OpenIM_QuitGroup 退出群组（异步）
+//
 extern void OpenIM_QuitGroup(base_callback_t* cb, char* operationID, char* groupID);
 
 // OpenIM_DismissGroup 解散群组（异步）
 //
 extern void OpenIM_DismissGroup(base_callback_t* cb, char* operationID, char* groupID);
 
-// OpenIM_ChangeGroupMute 修改群组禁言状态（异步�?//
+// OpenIM_ChangeGroupMute 修改群组禁言状态（异步）
+//
 extern void OpenIM_ChangeGroupMute(base_callback_t* cb, char* operationID, char* groupID, int isMute);
 
 // OpenIM_ChangeGroupMemberMute 修改群成员禁言时长（异步）
@@ -3393,14 +3405,16 @@ extern void OpenIM_ChangeGroupMemberMute(base_callback_t* cb, char* operationID,
 //
 extern void OpenIM_TransferGroupOwner(base_callback_t* cb, char* operationID, char* groupID, char* newOwnerUserID);
 
-// OpenIM_KickGroupMember 踢出群成员（异步�?//
+// OpenIM_KickGroupMember 踢出群成员（异步）
+//
 extern void OpenIM_KickGroupMember(base_callback_t* cb, char* operationID, char* groupID, char* reason, char* userIDList);
 
 // OpenIM_SetGroupInfo 设置群组信息（异步）
 //
 extern void OpenIM_SetGroupInfo(base_callback_t* cb, char* operationID, char* groupInfo);
 
-// OpenIM_SetGroupMemberInfo 设置群成员信息（异步�?//
+// OpenIM_SetGroupMemberInfo 设置群成员信息（异步）
+//
 extern void OpenIM_SetGroupMemberInfo(base_callback_t* cb, char* operationID, char* groupMemberInfo);
 
 // OpenIM_GetJoinedGroupList 获取已加入的群组列表（异步）
@@ -3427,135 +3441,168 @@ extern void OpenIM_GetGroupMemberOwnerAndAdmin(base_callback_t* cb, char* operat
 //
 extern void OpenIM_GetGroupMemberListByJoinTimeFilter(base_callback_t* cb, char* operationID, char* groupID, int32_t offset, int32_t count, int64_t joinTimeBegin, int64_t joinTimeEnd, char* filterUserIDList);
 
-// OpenIM_GetSpecifiedGroupMembersInfo 获取指定群成员信息（异步�?//
+// OpenIM_GetSpecifiedGroupMembersInfo 获取指定群成员信息（异步）
+//
 extern void OpenIM_GetSpecifiedGroupMembersInfo(base_callback_t* cb, char* operationID, char* groupID, char* userIDList);
 
-// OpenIM_GetGroupMemberList 获取群成员列表（异步�?//
+// OpenIM_GetGroupMemberList 获取群成员列表（异步）
+//
 extern void OpenIM_GetGroupMemberList(base_callback_t* cb, char* operationID, char* groupID, int32_t filter, int32_t offset, int32_t count);
 
-// OpenIM_SearchGroupMembers 搜索群成员（异步�?//
+// OpenIM_SearchGroupMembers 搜索群成员（异步）
+//
 extern void OpenIM_SearchGroupMembers(base_callback_t* cb, char* operationID, char* searchParam);
 
-// OpenIM_IsJoinGroup 判断是否已加入群组（异步�?//
+// OpenIM_IsJoinGroup 判断是否已加入群组（异步）
+//
 extern void OpenIM_IsJoinGroup(base_callback_t* cb, char* operationID, char* groupID);
 
 // OpenIM_GetUsersInGroup 查询用户是否在群组中（异步）
 //
 extern void OpenIM_GetUsersInGroup(base_callback_t* cb, char* operationID, char* groupID, char* userIDList);
 
-// OpenIM_GetGroupApplicationListAsRecipient 获取作为接收者的群申请列表（异步�?//
+// OpenIM_GetGroupApplicationListAsRecipient 获取作为接收者的群申请列表（异步）
+//
 extern void OpenIM_GetGroupApplicationListAsRecipient(base_callback_t* cb, char* operationID, char* req);
 
-// OpenIM_GetGroupApplicationListAsApplicant 获取作为申请者的群申请列表（异步�?//
+// OpenIM_GetGroupApplicationListAsApplicant 获取作为申请者的群申请列表（异步）
+//
 extern void OpenIM_GetGroupApplicationListAsApplicant(base_callback_t* cb, char* operationID, char* req);
 
-// OpenIM_InviteUserToGroup 邀请用户加入群组（异步�?//
+// OpenIM_InviteUserToGroup 邀请用户加入群组（异步）
+//
 extern void OpenIM_InviteUserToGroup(base_callback_t* cb, char* operationID, char* groupID, char* reason, char* userIDList);
 
-// OpenIM_AcceptGroupApplication 接受群申请（异步�?//
+// OpenIM_AcceptGroupApplication 接受群申请（异步）
+//
 extern void OpenIM_AcceptGroupApplication(base_callback_t* cb, char* operationID, char* groupID, char* fromUserID, char* handleMsg);
 
-// OpenIM_RefuseGroupApplication 拒绝群申请（异步�?//
+// OpenIM_RefuseGroupApplication 拒绝群申请（异步）
+//
 extern void OpenIM_RefuseGroupApplication(base_callback_t* cb, char* operationID, char* groupID, char* fromUserID, char* handleMsg);
 
 // OpenIM_GetGroupApplicationUnhandledCount 获取群申请未处理数量（异步）
 //
 extern void OpenIM_GetGroupApplicationUnhandledCount(base_callback_t* cb, char* operationID, char* req);
 
-// OpenIM_CheckLocalGroupFullSync 检查本地群组全量同步（异步�?//
+// OpenIM_CheckLocalGroupFullSync 检查本地群组全量同步（异步）
+//
 extern void OpenIM_CheckLocalGroupFullSync(base_callback_t* cb, char* operationID);
 
 // OpenIM_CheckGroupMemberFullSync 检查群成员全量同步（异步）
 //
 extern void OpenIM_CheckGroupMemberFullSync(base_callback_t* cb, char* operationID, char* groupID);
 
-// OpenIM_GetSdkVersion 获取 SDK 版本�?// 返回: C 字符串（需调用 OpenIM_FreeString 释放�?//
-extern char* OpenIM_GetSdkVersion(void);
+// OpenIM_GetSdkVersion 获取 SDK 版本号
+// 返回: C 字符串（需调用 OpenIM_FreeString 释放）
+//
+extern char* OpenIM_GetSdkVersion();
 
-// OpenIM_InitSDK 初始�?SDK
+// OpenIM_InitSDK 初始化 SDK
 // 参数:
 //   - connListener: 连接监听器回调结构体指针
-//   - operationID: 操作ID，用于链路追�?//   - config: JSON 格式的配置字符串
+//   - operationID: 操作ID，用于链路追踪
+//   - config: JSON 格式的配置字符串
 //
-// 返回: 1 表示成功�? 表示失败
+// 返回: 1 表示成功，0 表示失败
 //
 extern int OpenIM_InitSDK(conn_listener_t* connListener, char* operationID, char* config);
 
-// OpenIM_UnInitSDK 反初始化 SDK，释放资�?// 参数:
+// OpenIM_UnInitSDK 反初始化 SDK，释放资源
+// 参数:
 //   - operationID: 操作ID
 //
 extern void OpenIM_UnInitSDK(char* operationID);
 
-// OpenIM_Login 登录（异步，结果通过 callback 返回�?// 参数:
-//   - cb: 基础回调结构体指�?//   - operationID: 操作ID
+// OpenIM_Login 登录（异步，结果通过 callback 返回）
+// 参数:
+//   - cb: 基础回调结构体指针
+//   - operationID: 操作ID
 //   - userID: 用户ID
 //   - token: 登录令牌
 //
 extern void OpenIM_Login(base_callback_t* cb, char* operationID, char* userID, char* token);
 
-// OpenIM_Logout 登出（异步，结果通过 callback 返回�?//
+// OpenIM_Logout 登出（异步，结果通过 callback 返回）
+//
 extern void OpenIM_Logout(base_callback_t* cb, char* operationID);
 
-// OpenIM_GetLoginStatus 获取登录状态（同步�?// 返回: 1=已登�? 2=登录�? 3=已登�?//
+// OpenIM_GetLoginStatus 获取登录状态（同步）
+// 返回: 1=已登出, 2=登录中, 3=已登录
+//
 extern int OpenIM_GetLoginStatus(char* operationID);
 
 // OpenIM_GetLoginUserID 获取当前登录用户ID（同步）
-// 返回: C 字符串（需调用 OpenIM_FreeString 释放�?//
-extern char* OpenIM_GetLoginUserID(void);
+// 返回: C 字符串（需调用 OpenIM_FreeString 释放）
+//
+extern char* OpenIM_GetLoginUserID();
 
-// OpenIM_SetAppBackgroundStatus 设置 App 前后台状态（异步�?// 参数:
-//   - isBackground: 1 表示后台�? 表示前台
+// OpenIM_SetAppBackgroundStatus 设置 App 前后台状态（异步）
+// 参数:
+//   - isBackground: 1 表示后台，0 表示前台
 //
 extern void OpenIM_SetAppBackgroundStatus(base_callback_t* cb, char* operationID, int isBackground);
 
-// OpenIM_NetworkStatusChanged 通知网络状态变化（异步�?//
+// OpenIM_NetworkStatusChanged 通知网络状态变化（异步）
+//
 extern void OpenIM_NetworkStatusChanged(base_callback_t* cb, char* operationID);
 
-// OpenIM_SetGroupListener 设置群组事件监听�?// 参数:
+// OpenIM_SetGroupListener 设置群组事件监听器
+// 参数:
 //   - listener: 群组监听器回调结构体指针
 //
 extern void OpenIM_SetGroupListener(group_listener_t* listener);
 
-// OpenIM_SetConversationListener 设置会话事件监听�?// 参数:
+// OpenIM_SetConversationListener 设置会话事件监听器
+// 参数:
 //   - listener: 会话监听器回调结构体指针
 //
 extern void OpenIM_SetConversationListener(conversation_listener_t* listener);
 
-// OpenIM_SetAdvancedMsgListener 设置高级消息事件监听�?// 参数:
+// OpenIM_SetAdvancedMsgListener 设置高级消息事件监听器
+// 参数:
 //   - listener: 消息监听器回调结构体指针
 //
 extern void OpenIM_SetAdvancedMsgListener(advanced_msg_listener_t* listener);
 
-// OpenIM_SetUserListener 设置用户事件监听�?// 参数:
+// OpenIM_SetUserListener 设置用户事件监听器
+// 参数:
 //   - listener: 用户监听器回调结构体指针
 //
 extern void OpenIM_SetUserListener(user_listener_t* listener);
 
-// OpenIM_SetFriendListener 设置好友事件监听�?// 参数:
+// OpenIM_SetFriendListener 设置好友事件监听器
+// 参数:
 //   - listener: 好友监听器回调结构体指针
 //
 extern void OpenIM_SetFriendListener(friendship_listener_t* listener);
 
 // OpenIM_SetCustomBusinessListener 设置自定义业务事件监听器
 // 参数:
-//   - listener: 自定义业务监听器回调结构体指�?//
+//   - listener: 自定义业务监听器回调结构体指针
+//
 extern void OpenIM_SetCustomBusinessListener(custom_business_listener_t* listener);
 
-// OpenIM_SetMessageKvInfoListener 设置消息 KV 信息变更监听�?// 参数:
+// OpenIM_SetMessageKvInfoListener 设置消息 KV 信息变更监听器
+// 参数:
 //   - listener: 消息 KV 监听器回调结构体指针
 //
 extern void OpenIM_SetMessageKvInfoListener(message_kv_info_listener_t* listener);
 
-// OpenIM_SubscribeUsersStatus 订阅用户在线状态（异步�?//
+// OpenIM_SubscribeUsersStatus 订阅用户在线状态（异步）
+//
 extern void OpenIM_SubscribeUsersStatus(base_callback_t* cb, char* operationID, char* userIDs);
 
-// OpenIM_UnsubscribeUsersStatus 取消订阅用户在线状态（异步�?//
+// OpenIM_UnsubscribeUsersStatus 取消订阅用户在线状态（异步）
+//
 extern void OpenIM_UnsubscribeUsersStatus(base_callback_t* cb, char* operationID, char* userIDs);
 
-// OpenIM_GetSubscribeUsersStatus 获取已订阅用户在线状态（异步�?//
+// OpenIM_GetSubscribeUsersStatus 获取已订阅用户在线状态（异步）
+//
 extern void OpenIM_GetSubscribeUsersStatus(base_callback_t* cb, char* operationID);
 
-// OpenIM_GetUserStatus 获取用户在线状态（异步�?//
+// OpenIM_GetUserStatus 获取用户在线状态（异步）
+//
 extern void OpenIM_GetUserStatus(base_callback_t* cb, char* operationID, char* userIDs);
 
 // OpenIM_GetSpecifiedFriendsInfo 获取指定好友信息（异步）
@@ -3574,7 +3621,8 @@ extern void OpenIM_GetFriendListPage(base_callback_t* cb, char* operationID, int
 //
 extern void OpenIM_SearchFriends(base_callback_t* cb, char* operationID, char* searchParam);
 
-// OpenIM_CheckFriend 检查好友关系（异步�?//
+// OpenIM_CheckFriend 检查好友关系（异步）
+//
 extern void OpenIM_CheckFriend(base_callback_t* cb, char* operationID, char* userIDList);
 
 // OpenIM_AddFriend 添加好友（异步）
@@ -3605,29 +3653,34 @@ extern void OpenIM_AcceptFriendApplication(base_callback_t* cb, char* operationI
 //
 extern void OpenIM_RefuseFriendApplication(base_callback_t* cb, char* operationID, char* userIDHandleMsg);
 
-// OpenIM_GetFriendApplicationUnhandledCount 获取好友申请未处理数量（异步�?//
+// OpenIM_GetFriendApplicationUnhandledCount 获取好友申请未处理数量（异步）
+//
 extern void OpenIM_GetFriendApplicationUnhandledCount(base_callback_t* cb, char* operationID, char* req);
 
 // OpenIM_AddBlack 拉黑用户（异步）
 //
 extern void OpenIM_AddBlack(base_callback_t* cb, char* operationID, char* blackUserID, char* ex);
 
-// OpenIM_GetBlackList 获取黑名单列表（异步�?//
+// OpenIM_GetBlackList 获取黑名单列表（异步）
+//
 extern void OpenIM_GetBlackList(base_callback_t* cb, char* operationID);
 
-// OpenIM_RemoveBlack 移除黑名单（异步�?//
+// OpenIM_RemoveBlack 移除黑名单（异步）
+//
 extern void OpenIM_RemoveBlack(base_callback_t* cb, char* operationID, char* removeUserID);
 
-// OpenIM_UpdateFcmToken 更新 FCM 推�?Token（异步）
+// OpenIM_UpdateFcmToken 更新 FCM 推送 Token（异步）
 //
 extern void OpenIM_UpdateFcmToken(base_callback_t* cb, char* operationID, char* fcmToken, int64_t expireTime);
 
-// OpenIM_SetAppBadge 设置应用角标未读数（异步�?//
+// OpenIM_SetAppBadge 设置应用角标未读数（异步）
+//
 extern void OpenIM_SetAppBadge(base_callback_t* cb, char* operationID, int32_t appUnreadCount);
 
 // OpenIM_UploadLogs 上传日志（异步）
 // 参数:
-//   - progress: 日志上传进度回调结构体指�?//
+//   - progress: 日志上传进度回调结构体指针
+//
 extern void OpenIM_UploadLogs(base_callback_t* cb, char* operationID, int line, char* ex, upload_log_progress_t* progress);
 
 // OpenIM_Logs 写入日志（异步）
@@ -3636,7 +3689,8 @@ extern void OpenIM_Logs(base_callback_t* cb, char* operationID, int logLevel, ch
 
 // OpenIM_UploadFile 上传文件（异步）
 // 参数:
-//   - progress: 文件上传回调结构体指�?//
+//   - progress: 文件上传回调结构体指针
+//
 extern void OpenIM_UploadFile(base_callback_t* cb, char* operationID, char* req, upload_file_callback_t* progress);
 
 // OpenIM_GetUsersInfo 获取用户信息（异步）
@@ -3651,7 +3705,8 @@ extern void OpenIM_SetSelfInfo(base_callback_t* cb, char* operationID, char* use
 //
 extern void OpenIM_GetSelfUserInfo(base_callback_t* cb, char* operationID);
 
-// OpenIM_GetUserClientConfig 获取用户客户端配置（异步�?//
+// OpenIM_GetUserClientConfig 获取用户客户端配置（异步）
+//
 extern void OpenIM_GetUserClientConfig(base_callback_t* cb, char* operationID);
 
 #ifdef __cplusplus
