@@ -37,18 +37,15 @@ func OpenIM_GetSdkVersion() *C.char {
 //   - operationID: 操作ID，用于链路追踪
 //   - config: JSON 格式的配置字符串
 //
-// 返回: 1 表示成功，0 表示失败
+// 返回: 布尔值，true 表示成功，false 表示失败
 //
 //export OpenIM_InitSDK
-func OpenIM_InitSDK(connListener *C.conn_listener_t, operationID, config *C.char) C.int {
+func OpenIM_InitSDK(connListener *C.conn_listener_t, operationID, config *C.char) C._Bool {
 	// 将 C 回调结构体包装为 Go 接口实现
 	listener := newConnListener(connListener)
-	// 调用 SDK 初始化
+	// 调用 SDK 初始化，result 为 Go bool，转换为 C._Bool 返回
 	result := open_im_sdk.InitSDK(listener, C.GoString(operationID), C.GoString(config))
-	if result {
-		return 1
-	}
-	return 0
+	return C._Bool(result)
 }
 
 // OpenIM_UnInitSDK 反初始化 SDK，释放资源
@@ -99,12 +96,13 @@ func OpenIM_GetLoginUserID() *C.char {
 
 // OpenIM_SetAppBackgroundStatus 设置 App 前后台状态（异步）
 // 参数:
-//   - isBackground: 1 表示后台，0 表示前台
+//   - isBackground: true 表示后台，false 表示前台
 //
 //export OpenIM_SetAppBackgroundStatus
-func OpenIM_SetAppBackgroundStatus(cb *C.base_callback_t, operationID *C.char, isBackground C.int) {
+func OpenIM_SetAppBackgroundStatus(cb *C.base_callback_t, operationID *C.char, isBackground C._Bool) {
 	callback := newBaseCallback(cb)
-	open_im_sdk.SetAppBackgroundStatus(callback, C.GoString(operationID), isBackground != 0)
+	// isBackground 为布尔类型(C._Bool)，直接转换为 Go bool 传入 SDK
+	open_im_sdk.SetAppBackgroundStatus(callback, C.GoString(operationID), bool(isBackground))
 }
 
 // OpenIM_NetworkStatusChanged 通知网络状态变化（异步）

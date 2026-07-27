@@ -60,9 +60,9 @@ func OpenIM_DismissGroup(cb *C.base_callback_t, operationID, groupID *C.char) {
 // OpenIM_ChangeGroupMute 修改群组禁言状态（异步）
 //
 //export OpenIM_ChangeGroupMute
-func OpenIM_ChangeGroupMute(cb *C.base_callback_t, operationID, groupID *C.char, isMute C.int) {
-	// isMute: 1=禁言, 0=取消禁言，需转换为 Go bool 类型
-	open_im_sdk.ChangeGroupMute(newBaseCallback(cb), C.GoString(operationID), C.GoString(groupID), isMute != 0)
+func OpenIM_ChangeGroupMute(cb *C.base_callback_t, operationID, groupID *C.char, isMute C._Bool) {
+	// isMute 为布尔类型(C._Bool)：true=禁言, false=取消禁言，直接转换为 Go bool 传入 SDK
+	open_im_sdk.ChangeGroupMute(newBaseCallback(cb), C.GoString(operationID), C.GoString(groupID), bool(isMute))
 }
 
 // OpenIM_ChangeGroupMemberMute 修改群成员禁言时长（异步）

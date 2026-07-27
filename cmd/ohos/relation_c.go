@@ -28,25 +28,25 @@ import (
 // OpenIM_GetSpecifiedFriendsInfo 获取指定好友信息（异步）
 //
 //export OpenIM_GetSpecifiedFriendsInfo
-func OpenIM_GetSpecifiedFriendsInfo(cb *C.base_callback_t, operationID, userIDList *C.char, filterBlack C.int) {
-	// userIDList 为 JSON 格式的用户 ID 列表，filterBlack 为是否过滤黑名单用户（1=过滤, 0=不过滤）
-	open_im_sdk.GetSpecifiedFriendsInfo(newBaseCallback(cb), C.GoString(operationID), C.GoString(userIDList), filterBlack != 0)
+func OpenIM_GetSpecifiedFriendsInfo(cb *C.base_callback_t, operationID, userIDList *C.char, filterBlack C._Bool) {
+	// userIDList 为 JSON 格式的用户 ID 列表，filterBlack 为布尔类型(C._Bool)：true=过滤黑名单, false=不过滤
+	open_im_sdk.GetSpecifiedFriendsInfo(newBaseCallback(cb), C.GoString(operationID), C.GoString(userIDList), bool(filterBlack))
 }
 
 // OpenIM_GetFriendList 获取好友列表（异步）
 //
 //export OpenIM_GetFriendList
-func OpenIM_GetFriendList(cb *C.base_callback_t, operationID *C.char, filterBlack C.int) {
-	// filterBlack 为是否过滤黑名单用户（1=过滤, 0=不过滤）
-	open_im_sdk.GetFriendList(newBaseCallback(cb), C.GoString(operationID), filterBlack != 0)
+func OpenIM_GetFriendList(cb *C.base_callback_t, operationID *C.char, filterBlack C._Bool) {
+	// filterBlack 为布尔类型(C._Bool)：true=过滤黑名单, false=不过滤
+	open_im_sdk.GetFriendList(newBaseCallback(cb), C.GoString(operationID), bool(filterBlack))
 }
 
 // OpenIM_GetFriendListPage 分页获取好友列表（异步）
 //
 //export OpenIM_GetFriendListPage
-func OpenIM_GetFriendListPage(cb *C.base_callback_t, operationID *C.char, offset, count C.int32_t, filterBlack C.int) {
-	// offset 为分页偏移量，count 为每页数量，filterBlack 为是否过滤黑名单用户
-	open_im_sdk.GetFriendListPage(newBaseCallback(cb), C.GoString(operationID), int32(offset), int32(count), filterBlack != 0)
+func OpenIM_GetFriendListPage(cb *C.base_callback_t, operationID *C.char, offset, count C.int32_t, filterBlack C._Bool) {
+	// offset 为分页偏移量，count 为每页数量，filterBlack 为布尔类型(C._Bool)：true=过滤黑名单, false=不过滤
+	open_im_sdk.GetFriendListPage(newBaseCallback(cb), C.GoString(operationID), int32(offset), int32(count), bool(filterBlack))
 }
 
 // OpenIM_SearchFriends 搜索好友（异步）

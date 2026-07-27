@@ -26,6 +26,7 @@ typedef struct { const char *p; ptrdiff_t n; } _GoString_;
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 // ===================== C callback function pointer types =====================
 
@@ -65,10 +66,10 @@ typedef struct {
 } conn_listener_t;
 
 // OnConversationListener
-typedef void (*on_sync_server_start_t)(int reinstalled);
-typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_start_t)(bool reinstalled);
+typedef void (*on_sync_server_finish_t)(bool reinstalled);
 typedef void (*on_sync_server_progress_t)(int progress);
-typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_sync_server_failed_t)(bool reinstalled);
 typedef void (*on_new_conversation_t)(const char* conversation_list);
 typedef void (*on_conversation_changed_t)(const char* conversation_list);
 typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
@@ -239,16 +240,16 @@ static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_m
 }
 
 // OnConversationListener wrappers
-static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
 }
-static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
 }
 static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
     if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
 }
-static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
 }
 static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {
@@ -415,6 +416,7 @@ static void upload_log_cb_on_progress(upload_log_progress_t* cb, int64_t current
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 // ===================== C callback function pointer types =====================
 
@@ -454,10 +456,10 @@ typedef struct {
 } conn_listener_t;
 
 // OnConversationListener
-typedef void (*on_sync_server_start_t)(int reinstalled);
-typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_start_t)(bool reinstalled);
+typedef void (*on_sync_server_finish_t)(bool reinstalled);
 typedef void (*on_sync_server_progress_t)(int progress);
-typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_sync_server_failed_t)(bool reinstalled);
 typedef void (*on_new_conversation_t)(const char* conversation_list);
 typedef void (*on_conversation_changed_t)(const char* conversation_list);
 typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
@@ -628,16 +630,16 @@ static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_m
 }
 
 // OnConversationListener wrappers
-static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
 }
-static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
 }
 static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
     if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
 }
-static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
 }
 static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {
@@ -798,6 +800,7 @@ static void upload_log_cb_on_progress(upload_log_progress_t* cb, int64_t current
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 // ===================== C callback function pointer types =====================
 
@@ -837,10 +840,10 @@ typedef struct {
 } conn_listener_t;
 
 // OnConversationListener
-typedef void (*on_sync_server_start_t)(int reinstalled);
-typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_start_t)(bool reinstalled);
+typedef void (*on_sync_server_finish_t)(bool reinstalled);
 typedef void (*on_sync_server_progress_t)(int progress);
-typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_sync_server_failed_t)(bool reinstalled);
 typedef void (*on_new_conversation_t)(const char* conversation_list);
 typedef void (*on_conversation_changed_t)(const char* conversation_list);
 typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
@@ -1011,16 +1014,16 @@ static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_m
 }
 
 // OnConversationListener wrappers
-static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
 }
-static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
 }
 static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
     if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
 }
-static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
 }
 static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {
@@ -1181,6 +1184,7 @@ static void upload_log_cb_on_progress(upload_log_progress_t* cb, int64_t current
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 // ===================== C callback function pointer types =====================
 
@@ -1220,10 +1224,10 @@ typedef struct {
 } conn_listener_t;
 
 // OnConversationListener
-typedef void (*on_sync_server_start_t)(int reinstalled);
-typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_start_t)(bool reinstalled);
+typedef void (*on_sync_server_finish_t)(bool reinstalled);
 typedef void (*on_sync_server_progress_t)(int progress);
-typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_sync_server_failed_t)(bool reinstalled);
 typedef void (*on_new_conversation_t)(const char* conversation_list);
 typedef void (*on_conversation_changed_t)(const char* conversation_list);
 typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
@@ -1394,16 +1398,16 @@ static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_m
 }
 
 // OnConversationListener wrappers
-static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
 }
-static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
 }
 static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
     if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
 }
-static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
 }
 static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {
@@ -1564,6 +1568,7 @@ static void upload_log_cb_on_progress(upload_log_progress_t* cb, int64_t current
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 // ===================== C callback function pointer types =====================
 
@@ -1603,10 +1608,10 @@ typedef struct {
 } conn_listener_t;
 
 // OnConversationListener
-typedef void (*on_sync_server_start_t)(int reinstalled);
-typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_start_t)(bool reinstalled);
+typedef void (*on_sync_server_finish_t)(bool reinstalled);
 typedef void (*on_sync_server_progress_t)(int progress);
-typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_sync_server_failed_t)(bool reinstalled);
 typedef void (*on_new_conversation_t)(const char* conversation_list);
 typedef void (*on_conversation_changed_t)(const char* conversation_list);
 typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
@@ -1777,16 +1782,16 @@ static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_m
 }
 
 // OnConversationListener wrappers
-static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
 }
-static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
 }
 static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
     if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
 }
-static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
 }
 static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {
@@ -1947,6 +1952,7 @@ static void upload_log_cb_on_progress(upload_log_progress_t* cb, int64_t current
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 // ===================== C callback function pointer types =====================
 
@@ -1986,10 +1992,10 @@ typedef struct {
 } conn_listener_t;
 
 // OnConversationListener
-typedef void (*on_sync_server_start_t)(int reinstalled);
-typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_start_t)(bool reinstalled);
+typedef void (*on_sync_server_finish_t)(bool reinstalled);
 typedef void (*on_sync_server_progress_t)(int progress);
-typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_sync_server_failed_t)(bool reinstalled);
 typedef void (*on_new_conversation_t)(const char* conversation_list);
 typedef void (*on_conversation_changed_t)(const char* conversation_list);
 typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
@@ -2160,16 +2166,16 @@ static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_m
 }
 
 // OnConversationListener wrappers
-static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
 }
-static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
 }
 static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
     if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
 }
-static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
 }
 static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {
@@ -2330,6 +2336,7 @@ static void upload_log_cb_on_progress(upload_log_progress_t* cb, int64_t current
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 // ===================== C callback function pointer types =====================
 
@@ -2369,10 +2376,10 @@ typedef struct {
 } conn_listener_t;
 
 // OnConversationListener
-typedef void (*on_sync_server_start_t)(int reinstalled);
-typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_start_t)(bool reinstalled);
+typedef void (*on_sync_server_finish_t)(bool reinstalled);
 typedef void (*on_sync_server_progress_t)(int progress);
-typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_sync_server_failed_t)(bool reinstalled);
 typedef void (*on_new_conversation_t)(const char* conversation_list);
 typedef void (*on_conversation_changed_t)(const char* conversation_list);
 typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
@@ -2543,16 +2550,16 @@ static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_m
 }
 
 // OnConversationListener wrappers
-static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
 }
-static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
 }
 static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
     if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
 }
-static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
 }
 static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {
@@ -2713,6 +2720,7 @@ static void upload_log_cb_on_progress(upload_log_progress_t* cb, int64_t current
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 // ===================== C callback function pointer types =====================
 
@@ -2752,10 +2760,10 @@ typedef struct {
 } conn_listener_t;
 
 // OnConversationListener
-typedef void (*on_sync_server_start_t)(int reinstalled);
-typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_start_t)(bool reinstalled);
+typedef void (*on_sync_server_finish_t)(bool reinstalled);
 typedef void (*on_sync_server_progress_t)(int progress);
-typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_sync_server_failed_t)(bool reinstalled);
 typedef void (*on_new_conversation_t)(const char* conversation_list);
 typedef void (*on_conversation_changed_t)(const char* conversation_list);
 typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
@@ -2926,16 +2934,16 @@ static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_m
 }
 
 // OnConversationListener wrappers
-static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
 }
-static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
 }
 static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
     if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
 }
-static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
 }
 static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {
@@ -3290,11 +3298,11 @@ extern char* OpenIM_GetConversationIDBySessionType(char* operationID, char* sour
 
 // OpenIM_SendMessage 发送消息（异步，进度通过 callback 返回）
 //
-extern void OpenIM_SendMessage(send_msg_callback_t* cb, char* operationID, char* message, char* recvID, char* groupID, char* offlinePushInfo, int isOnlineOnly);
+extern void OpenIM_SendMessage(send_msg_callback_t* cb, char* operationID, char* message, char* recvID, char* groupID, char* offlinePushInfo, _Bool isOnlineOnly);
 
 // OpenIM_SendMessageNotOss 发送消息不经过 OSS（异步）
 //
-extern void OpenIM_SendMessageNotOss(send_msg_callback_t* cb, char* operationID, char* message, char* recvID, char* groupID, char* offlinePushInfo, int isOnlineOnly);
+extern void OpenIM_SendMessageNotOss(send_msg_callback_t* cb, char* operationID, char* message, char* recvID, char* groupID, char* offlinePushInfo, _Bool isOnlineOnly);
 
 // OpenIM_FindMessageList 查找消息列表（异步）
 //
@@ -3366,7 +3374,7 @@ extern void OpenIM_SetMessageLocalEx(base_callback_t* cb, char* operationID, cha
 
 // OpenIM_ChangeInputStates 修改输入状态（异步）
 //
-extern void OpenIM_ChangeInputStates(base_callback_t* cb, char* operationID, char* conversationID, int focus);
+extern void OpenIM_ChangeInputStates(base_callback_t* cb, char* operationID, char* conversationID, _Bool focus);
 
 // OpenIM_GetInputStates 获取输入状态（异步）
 //
@@ -3395,7 +3403,7 @@ extern void OpenIM_DismissGroup(base_callback_t* cb, char* operationID, char* gr
 
 // OpenIM_ChangeGroupMute 修改群组禁言状态（异步）
 //
-extern void OpenIM_ChangeGroupMute(base_callback_t* cb, char* operationID, char* groupID, int isMute);
+extern void OpenIM_ChangeGroupMute(base_callback_t* cb, char* operationID, char* groupID, _Bool isMute);
 
 // OpenIM_ChangeGroupMemberMute 修改群成员禁言时长（异步）
 //
@@ -3504,9 +3512,9 @@ extern char* OpenIM_GetSdkVersion();
 //   - operationID: 操作ID，用于链路追踪
 //   - config: JSON 格式的配置字符串
 //
-// 返回: 1 表示成功，0 表示失败
+// 返回: 布尔值，true 表示成功，false 表示失败
 //
-extern int OpenIM_InitSDK(conn_listener_t* connListener, char* operationID, char* config);
+extern _Bool OpenIM_InitSDK(conn_listener_t* connListener, char* operationID, char* config);
 
 // OpenIM_UnInitSDK 反初始化 SDK，释放资源
 // 参数:
@@ -3539,9 +3547,9 @@ extern char* OpenIM_GetLoginUserID();
 
 // OpenIM_SetAppBackgroundStatus 设置 App 前后台状态（异步）
 // 参数:
-//   - isBackground: 1 表示后台，0 表示前台
+//   - isBackground: true 表示后台，false 表示前台
 //
-extern void OpenIM_SetAppBackgroundStatus(base_callback_t* cb, char* operationID, int isBackground);
+extern void OpenIM_SetAppBackgroundStatus(base_callback_t* cb, char* operationID, _Bool isBackground);
 
 // OpenIM_NetworkStatusChanged 通知网络状态变化（异步）
 //
@@ -3607,15 +3615,15 @@ extern void OpenIM_GetUserStatus(base_callback_t* cb, char* operationID, char* u
 
 // OpenIM_GetSpecifiedFriendsInfo 获取指定好友信息（异步）
 //
-extern void OpenIM_GetSpecifiedFriendsInfo(base_callback_t* cb, char* operationID, char* userIDList, int filterBlack);
+extern void OpenIM_GetSpecifiedFriendsInfo(base_callback_t* cb, char* operationID, char* userIDList, _Bool filterBlack);
 
 // OpenIM_GetFriendList 获取好友列表（异步）
 //
-extern void OpenIM_GetFriendList(base_callback_t* cb, char* operationID, int filterBlack);
+extern void OpenIM_GetFriendList(base_callback_t* cb, char* operationID, _Bool filterBlack);
 
 // OpenIM_GetFriendListPage 分页获取好友列表（异步）
 //
-extern void OpenIM_GetFriendListPage(base_callback_t* cb, char* operationID, int32_t offset, int32_t count, int filterBlack);
+extern void OpenIM_GetFriendListPage(base_callback_t* cb, char* operationID, int32_t offset, int32_t count, _Bool filterBlack);
 
 // OpenIM_SearchFriends 搜索好友（异步）
 //

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 // ===================== C callback function pointer types =====================
 
@@ -42,10 +43,10 @@ typedef struct {
 } conn_listener_t;
 
 // OnConversationListener
-typedef void (*on_sync_server_start_t)(int reinstalled);
-typedef void (*on_sync_server_finish_t)(int reinstalled);
+typedef void (*on_sync_server_start_t)(bool reinstalled);
+typedef void (*on_sync_server_finish_t)(bool reinstalled);
 typedef void (*on_sync_server_progress_t)(int progress);
-typedef void (*on_sync_server_failed_t)(int reinstalled);
+typedef void (*on_sync_server_failed_t)(bool reinstalled);
 typedef void (*on_new_conversation_t)(const char* conversation_list);
 typedef void (*on_conversation_changed_t)(const char* conversation_list);
 typedef void (*on_total_unread_count_changed_t)(int32_t total_unread_count);
@@ -216,16 +217,16 @@ static void conn_cb_on_user_token_invalid(conn_listener_t* cb, const char* err_m
 }
 
 // OnConversationListener wrappers
-static void conv_cb_on_sync_server_start(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_start(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_start) cb->on_sync_server_start(reinstalled);
 }
-static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_finish(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_finish) cb->on_sync_server_finish(reinstalled);
 }
 static void conv_cb_on_sync_server_progress(conversation_listener_t* cb, int progress) {
     if (cb && cb->on_sync_server_progress) cb->on_sync_server_progress(progress);
 }
-static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, int reinstalled) {
+static void conv_cb_on_sync_server_failed(conversation_listener_t* cb, bool reinstalled) {
     if (cb && cb->on_sync_server_failed) cb->on_sync_server_failed(reinstalled);
 }
 static void conv_cb_on_new_conversation(conversation_listener_t* cb, const char* conversation_list) {

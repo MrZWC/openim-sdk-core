@@ -177,22 +177,16 @@ func (l *conversationListener) OnSyncServerStart(reinstalled bool) {
 	if l.cb == nil {
 		return
 	}
-	r := 0
-	if reinstalled {
-		r = 1
-	}
-	C.conv_cb_on_sync_server_start(l.cb, C.int(r))
+	// 直接以 C._Bool 传递布尔语义，与 callback_types.h 的 bool 签名对齐
+	C.conv_cb_on_sync_server_start(l.cb, C._Bool(reinstalled))
 }
 
 func (l *conversationListener) OnSyncServerFinish(reinstalled bool) {
 	if l.cb == nil {
 		return
 	}
-	r := 0
-	if reinstalled {
-		r = 1
-	}
-	C.conv_cb_on_sync_server_finish(l.cb, C.int(r))
+	// 直接以 C._Bool 传递布尔语义，与 callback_types.h 的 bool 签名对齐
+	C.conv_cb_on_sync_server_finish(l.cb, C._Bool(reinstalled))
 }
 
 func (l *conversationListener) OnSyncServerProgress(progress int) {
@@ -206,11 +200,8 @@ func (l *conversationListener) OnSyncServerFailed(reinstalled bool) {
 	if l.cb == nil {
 		return
 	}
-	r := 0
-	if reinstalled {
-		r = 1
-	}
-	C.conv_cb_on_sync_server_failed(l.cb, C.int(r))
+	// 直接以 C._Bool 传递布尔语义，与 callback_types.h 的 bool 签名对齐
+	C.conv_cb_on_sync_server_failed(l.cb, C._Bool(reinstalled))
 }
 
 func (l *conversationListener) OnNewConversation(conversationList string) {

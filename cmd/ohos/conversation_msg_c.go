@@ -284,15 +284,17 @@ func OpenIM_GetConversationIDBySessionType(operationID, sourceID *C.char, sessio
 // OpenIM_SendMessage 发送消息（异步，进度通过 callback 返回）
 //
 //export OpenIM_SendMessage
-func OpenIM_SendMessage(cb *C.send_msg_callback_t, operationID, message, recvID, groupID, offlinePushInfo *C.char, isOnlineOnly C.int) {
-	open_im_sdk.SendMessage(newSendMsgCallback(cb), C.GoString(operationID), C.GoString(message), C.GoString(recvID), C.GoString(groupID), C.GoString(offlinePushInfo), isOnlineOnly != 0)
+func OpenIM_SendMessage(cb *C.send_msg_callback_t, operationID, message, recvID, groupID, offlinePushInfo *C.char, isOnlineOnly C._Bool) {
+	// isOnlineOnly 为布尔类型(C._Bool)，直接转换为 Go bool 传入 SDK
+	open_im_sdk.SendMessage(newSendMsgCallback(cb), C.GoString(operationID), C.GoString(message), C.GoString(recvID), C.GoString(groupID), C.GoString(offlinePushInfo), bool(isOnlineOnly))
 }
 
 // OpenIM_SendMessageNotOss 发送消息不经过 OSS（异步）
 //
 //export OpenIM_SendMessageNotOss
-func OpenIM_SendMessageNotOss(cb *C.send_msg_callback_t, operationID, message, recvID, groupID, offlinePushInfo *C.char, isOnlineOnly C.int) {
-	open_im_sdk.SendMessageNotOss(newSendMsgCallback(cb), C.GoString(operationID), C.GoString(message), C.GoString(recvID), C.GoString(groupID), C.GoString(offlinePushInfo), isOnlineOnly != 0)
+func OpenIM_SendMessageNotOss(cb *C.send_msg_callback_t, operationID, message, recvID, groupID, offlinePushInfo *C.char, isOnlineOnly C._Bool) {
+	// isOnlineOnly 为布尔类型(C._Bool)，直接转换为 Go bool 传入 SDK
+	open_im_sdk.SendMessageNotOss(newSendMsgCallback(cb), C.GoString(operationID), C.GoString(message), C.GoString(recvID), C.GoString(groupID), C.GoString(offlinePushInfo), bool(isOnlineOnly))
 }
 
 // ===================== 消息历史与搜索 API =====================
@@ -421,8 +423,9 @@ func OpenIM_SetMessageLocalEx(cb *C.base_callback_t, operationID, conversationID
 // OpenIM_ChangeInputStates 修改输入状态（异步）
 //
 //export OpenIM_ChangeInputStates
-func OpenIM_ChangeInputStates(cb *C.base_callback_t, operationID, conversationID *C.char, focus C.int) {
-	open_im_sdk.ChangeInputStates(newBaseCallback(cb), C.GoString(operationID), C.GoString(conversationID), focus != 0)
+func OpenIM_ChangeInputStates(cb *C.base_callback_t, operationID, conversationID *C.char, focus C._Bool) {
+	// focus 为布尔类型(C._Bool)，直接转换为 Go bool 传入 SDK
+	open_im_sdk.ChangeInputStates(newBaseCallback(cb), C.GoString(operationID), C.GoString(conversationID), bool(focus))
 }
 
 // OpenIM_GetInputStates 获取输入状态（异步）
